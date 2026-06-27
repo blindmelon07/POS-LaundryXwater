@@ -7,6 +7,9 @@ use App\Http\Controllers\DeliveryOrderController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\LaundryInventoryController;
+use App\Http\Controllers\LaundryOrderController;
+use App\Http\Controllers\LaundryServiceController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportController;
@@ -88,6 +91,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
         Route::put('users/{user}/role', [UserController::class, 'assignRole'])->name('users.role');
+    });
+
+    // Laundry
+    Route::prefix('laundry')->name('laundry.')->group(function () {
+        Route::get('orders', [LaundryOrderController::class, 'index'])->name('orders.index');
+        Route::post('orders', [LaundryOrderController::class, 'store'])->name('orders.store');
+        Route::get('orders/{laundryOrder}', [LaundryOrderController::class, 'show'])->name('orders.show');
+        Route::patch('orders/{laundryOrder}/status', [LaundryOrderController::class, 'updateStatus'])->name('orders.status');
+        Route::delete('orders/{laundryOrder}', [LaundryOrderController::class, 'destroy'])->name('orders.destroy');
+
+        Route::get('services', [LaundryServiceController::class, 'index'])->name('services.index');
+        Route::post('services', [LaundryServiceController::class, 'store'])->name('services.store');
+        Route::put('services/{laundryService}', [LaundryServiceController::class, 'update'])->name('services.update');
+        Route::delete('services/{laundryService}', [LaundryServiceController::class, 'destroy'])->name('services.destroy');
+
+        Route::get('inventory', [LaundryInventoryController::class, 'index'])->name('inventory.index');
+        Route::post('inventory', [LaundryInventoryController::class, 'store'])->name('inventory.store');
+        Route::put('inventory/{inventoryItem}', [LaundryInventoryController::class, 'update'])->name('inventory.update');
+        Route::post('inventory/{inventoryItem}/adjust', [LaundryInventoryController::class, 'adjust'])->name('inventory.adjust');
+        Route::delete('inventory/{inventoryItem}', [LaundryInventoryController::class, 'destroy'])->name('inventory.destroy');
     });
 });
 

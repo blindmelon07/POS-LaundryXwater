@@ -13,7 +13,8 @@ class InventoryController extends Controller
 {
     public function index(): Response
     {
-        $items = InventoryItem::with(['adjustments' => fn ($q) => $q->latest()->limit(5)->with('user')])
+        $items = InventoryItem::where('business', 'water')
+            ->with(['adjustments' => fn ($q) => $q->latest()->limit(5)->with('user')])
             ->orderBy('category')->orderBy('name')->get()->map(fn ($item) => [
                 'id' => $item->id,
                 'name' => $item->name,
@@ -53,7 +54,7 @@ class InventoryController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $item = InventoryItem::create($validated);
+        $item = InventoryItem::create(array_merge($validated, ['business' => 'water']));
 
         if ($validated['quantity'] > 0) {
             InventoryAdjustment::create([

@@ -6,6 +6,7 @@ use App\Models\Expense;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -49,10 +50,15 @@ class ReportController extends Controller
         $yearGallons = $months->sum('gallons');
         $yearMargin = $yearRevenue > 0 ? round(($yearProfit / $yearRevenue) * 100, 1) : 0;
 
-        $availableYears = Sale::selectRaw('YEAR(sale_date) as year')
+        $yearExpr = DB::getDriverName() === 'sqlite'
+            ? "CAST(strftime('%Y', sale_date) AS INTEGER)"
+            : 'YEAR(sale_date)';
+
+        $availableYears = Sale::selectRaw("$yearExpr as year")
             ->groupBy('year')
             ->orderByDesc('year')
             ->pluck('year')
+            ->map(fn ($y) => (int) $y)
             ->toArray();
 
         if (!in_array($year, $availableYears)) {

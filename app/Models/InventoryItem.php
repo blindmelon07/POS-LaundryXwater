@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class InventoryItem extends Model
 {
     protected $fillable = [
-        'name', 'category', 'quantity', 'unit',
+        'business', 'name', 'category', 'quantity', 'unit',
         'min_quantity', 'cost_per_unit', 'notes',
     ];
 

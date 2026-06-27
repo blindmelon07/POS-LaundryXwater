@@ -68,7 +68,7 @@ class PosController extends Controller
 
         $sale = Sale::create([
             'sale_number' => Sale::generateSaleNumber(),
-            'customer_name' => $validated['customer_name'],
+            'customer_name' => $validated['customer_name'] ?? null,
             'sale_date' => today(),
             'subtotal' => $subtotal,
             'discount' => $discount,
@@ -76,7 +76,7 @@ class PosController extends Controller
             'payment_method' => $validated['payment_method'],
             'amount_paid' => $amountPaid,
             'change_amount' => max(0, $amountPaid - $total),
-            'notes' => $validated['notes'],
+            'notes' => $validated['notes'] ?? null,
             'user_id' => auth()->id(),
         ]);
 

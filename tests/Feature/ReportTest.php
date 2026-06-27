@@ -42,9 +42,9 @@ test('report totals aggregate correctly', function () {
     $year = now()->year;
     $this->get("/reports?year={$year}")
         ->assertInertia(fn ($p) => $p
-            ->where('totals.revenue', 250.0)
-            ->where('totals.expenses', 100.0)
-            ->where('totals.profit', 150.0)
+            ->where('totals.revenue', 250)
+            ->where('totals.expenses', 100)
+            ->where('totals.profit', 150)
         );
 });
 

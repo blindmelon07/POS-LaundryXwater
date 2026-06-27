@@ -53,7 +53,7 @@ test('can view sale detail', function () {
         ->assertOk()
         ->assertInertia(fn ($p) => $p->component('sales/show')
             ->where('sale.sale_number', 'WRS-20260101-0001')
-            ->where('sale.total_amount', 90.0)
+            ->where('sale.total_amount', 90)
         );
 });
 
