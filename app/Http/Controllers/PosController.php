@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\InventoryAdjustment;
+use App\Models\InventoryItem;
 use App\Models\Product;
 use App\Models\Sale;
 use Illuminate\Http\RedirectResponse;
@@ -47,12 +49,12 @@ class PosController extends Controller
             'customer_id'                  => 'nullable|exists:customers,id',
             'customer_name'                => 'nullable|string|max:255',
             'payment_method'               => 'required|in:cash,gcash,card',
-            'amount_paid'                  => 'required|numeric|min:0',
+            'amount_paid'                  => 'nullable|numeric|min:0',
             'discount'                     => 'nullable|numeric|min:0',
             'notes'                        => 'nullable|string',
             'slim_returned'                => 'nullable|integer|min:0',
             'round_returned'               => 'nullable|integer|min:0',
-            'items'                        => 'required|array|min:1',
+            'items'                        => 'nullable|array',
             'items.*.product_id'           => 'required|exists:products,id',
             'items.*.quantity'             => 'required|integer|min:1',
             'items.*.containers_returned'  => 'nullable|integer|min:0',
@@ -61,7 +63,7 @@ class PosController extends Controller
         $items    = [];
         $subtotal = 0;
 
-        foreach ($validated['items'] as $item) {
+        foreach ($validated['items'] ?? [] as $item) {
             $product       = Product::findOrFail($item['product_id']);
             $lineSubtotal  = $product->price * $item['quantity'];
             $subtotal     += $lineSubtotal;
@@ -77,9 +79,18 @@ class PosController extends Controller
             ];
         }
 
+        $slimReturnedDirect  = (int) ($validated['slim_returned']  ?? 0);
+        $roundReturnedDirect = (int) ($validated['round_returned'] ?? 0);
+        $hasReturns = $slimReturnedDirect > 0 || $roundReturnedDirect > 0;
+
+        // Reject if nothing to process
+        if (empty($items) && !$hasReturns) {
+            return back()->withErrors(['items' => 'Add at least one product or record a container return.']);
+        }
+
         $discount   = (float) ($validated['discount'] ?? 0);
         $total      = $subtotal - $discount;
-        $amountPaid = (float) $validated['amount_paid'];
+        $amountPaid = (float) ($validated['amount_paid'] ?? 0);
 
         $sale = Sale::create([
             'sale_number'   => Sale::generateSaleNumber(),
@@ -103,9 +114,8 @@ class PosController extends Controller
         // Auto-deduct returned containers from the linked customer's balance
         $customerId = $validated['customer_id'] ?? null;
         if ($customerId) {
-            // Direct return inputs from the checkout panel
-            $slimReturned  = (int) ($validated['slim_returned']  ?? 0);
-            $roundReturned = (int) ($validated['round_returned'] ?? 0);
+            $slimReturned  = $slimReturnedDirect;
+            $roundReturned = $roundReturnedDirect;
 
             // Also count any returns recorded on container cart items
             foreach ($validated['items'] as $item) {
@@ -123,6 +133,7 @@ class PosController extends Controller
             }
 
             if ($slimReturned > 0 || $roundReturned > 0) {
+                // Deduct from customer's container balance
                 $customer = Customer::find($customerId);
                 if ($customer) {
                     $customer->update([
@@ -130,9 +141,42 @@ class PosController extends Controller
                         'round_containers' => max(0, $customer->round_containers - $roundReturned),
                     ]);
                 }
+
+                // Add returned containers back into inventory
+                $customerName = $customer?->name ?? ($validated['customer_name'] ?? 'Customer');
+                $this->restockContainerInventory('slim', $slimReturned, $sale->sale_number, $customerName);
+                $this->restockContainerInventory('round', $roundReturned, $sale->sale_number, $customerName);
             }
         }
 
         return redirect()->route('pos.index')->with('success', "Sale {$sale->sale_number} recorded.");
+    }
+
+    private function restockContainerInventory(string $type, int $qty, string $saleNumber, string $customerName): void
+    {
+        if ($qty <= 0) return;
+
+        $items = InventoryItem::where('business', 'water')
+            ->where('container_type', $type)
+            ->get();
+
+        $processor = auth()->user()?->name ?? 'System';
+
+        foreach ($items as $item) {
+            $before = (float) $item->quantity;
+            $after  = $before + $qty;
+
+            $item->update(['quantity' => $after]);
+
+            InventoryAdjustment::create([
+                'inventory_item_id' => $item->id,
+                'type'              => 'add',
+                'quantity'          => $qty,
+                'quantity_before'   => $before,
+                'quantity_after'    => $after,
+                'reason'            => "Returned by {$customerName} — Sale {$saleNumber} (processed by: {$processor})",
+                'user_id'           => auth()->id(),
+            ]);
+        }
     }
 }

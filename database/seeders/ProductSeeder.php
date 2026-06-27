@@ -10,17 +10,82 @@ class ProductSeeder extends Seeder
     public function run(): void
     {
         $products = [
-            ['name' => 'Slim/Round Wholesale', 'type' => 'slim_wholesale', 'price' => 25.00, 'unit' => 'Per gallon', 'notes' => 'Refill only'],
-            ['name' => 'Slim/Round Regular', 'type' => 'slim_regular', 'price' => 30.00, 'unit' => 'Per gallon', 'notes' => 'Refill only'],
-            ['name' => 'Slim/Round Commercial', 'type' => 'slim_commercial', 'price' => 35.00, 'unit' => 'Per gallon', 'notes' => 'Refill only'],
-            ['name' => 'Container Deposit (Slim)', 'type' => 'container_slim', 'price' => 50.00, 'unit' => 'Per container', 'notes' => 'Refundable'],
-            ['name' => 'Container Deposit (Round)', 'type' => 'container_round', 'price' => 80.00, 'unit' => 'Per container', 'notes' => 'Refundable'],
-            ['name' => 'Delivery Fee', 'type' => 'delivery', 'price' => 20.00, 'unit' => 'Per trip', 'notes' => 'Within delivery area'],
-            ['name' => 'Other / Special Order', 'type' => 'other', 'price' => 10.00, 'unit' => 'Per unit', 'notes' => 'Negotiable'],
+            // ── Delivery ─────────────────────────────────────────────
+            [
+                'name'      => 'Slim/Round Wholesale',
+                'type'      => 'slim_wholesale',
+                'price'     => 25.00,
+                'unit'      => 'Per gallon',
+                'notes'     => 'Delivery – Wholesale',
+                'is_active' => true,
+            ],
+            [
+                'name'      => 'Slim/Round Regular',
+                'type'      => 'slim_regular',
+                'price'     => 30.00,
+                'unit'      => 'Per gallon',
+                'notes'     => 'Delivery – Regular',
+                'is_active' => true,
+            ],
+            [
+                'name'      => 'Slim/Round Commercial',
+                'type'      => 'slim_commercial',
+                'price'     => 35.00,
+                'unit'      => 'Per gallon',
+                'notes'     => 'Delivery – Commercial',
+                'is_active' => true,
+            ],
+
+            // ── Walk-in ───────────────────────────────────────────────
+            [
+                'name'      => 'Slim/Round Walk-in',
+                'type'      => 'slim_wholesale',
+                'price'     => 25.00,
+                'unit'      => 'Per gallon',
+                'notes'     => 'Walk-in',
+                'is_active' => true,
+            ],
+            [
+                'name'      => 'Slim/Round Walk-in/Delivered',
+                'type'      => 'slim_regular',
+                'price'     => 30.00,
+                'unit'      => 'Per gallon',
+                'notes'     => 'Walk-in / Delivered',
+                'is_active' => true,
+            ],
+
+            // ── Products for sale ─────────────────────────────────────
+            [
+                'name'      => 'Slim/Round Gallon w/ Water',
+                'type'      => 'container_slim',
+                'price'     => 200.00,
+                'unit'      => 'Per unit',
+                'notes'     => 'New container + water included',
+                'is_active' => true,
+            ],
+            [
+                'name'      => 'Dispenser',
+                'type'      => 'other',
+                'price'     => 5000.00,
+                'unit'      => 'Per unit',
+                'notes'     => 'Water dispenser',
+                'is_active' => true,
+            ],
         ];
 
         foreach ($products as $product) {
-            Product::firstOrCreate(['type' => $product['type']], $product);
+            Product::updateOrCreate(
+                ['name' => $product['name']],
+                $product
+            );
         }
+
+        // Deactivate the old placeholder products that the store doesn't use
+        Product::whereIn('name', [
+            'Container Deposit (Slim)',
+            'Container Deposit (Round)',
+            'Delivery Fee',
+            'Other / Special Order',
+        ])->update(['is_active' => false]);
     }
 }

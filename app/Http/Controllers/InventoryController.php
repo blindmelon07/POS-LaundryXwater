@@ -19,6 +19,7 @@ class InventoryController extends Controller
                 'id' => $item->id,
                 'name' => $item->name,
                 'category' => $item->category,
+                'container_type' => $item->container_type,
                 'quantity' => (float) $item->quantity,
                 'unit' => $item->unit,
                 'min_quantity' => $item->min_quantity ? (float) $item->min_quantity : null,
@@ -45,13 +46,14 @@ class InventoryController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'category' => 'required|string|max:100',
-            'quantity' => 'required|numeric|min:0',
-            'unit' => 'required|string|max:50',
-            'min_quantity' => 'nullable|numeric|min:0',
-            'cost_per_unit' => 'nullable|numeric|min:0',
-            'notes' => 'nullable|string',
+            'name'           => 'required|string|max:255',
+            'category'       => 'required|string|max:100',
+            'container_type' => 'nullable|in:slim,round',
+            'quantity'       => 'required|numeric|min:0',
+            'unit'           => 'required|string|max:50',
+            'min_quantity'   => 'nullable|numeric|min:0',
+            'cost_per_unit'  => 'nullable|numeric|min:0',
+            'notes'          => 'nullable|string',
         ]);
 
         $item = InventoryItem::create(array_merge($validated, ['business' => 'water']));
@@ -74,13 +76,14 @@ class InventoryController extends Controller
     public function update(Request $request, InventoryItem $inventoryItem): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'category' => 'required|string|max:100',
-            'quantity' => 'required|numeric|min:0',
-            'unit' => 'required|string|max:50',
-            'min_quantity' => 'nullable|numeric|min:0',
-            'cost_per_unit' => 'nullable|numeric|min:0',
-            'notes' => 'nullable|string',
+            'name'           => 'required|string|max:255',
+            'category'       => 'required|string|max:100',
+            'container_type' => 'nullable|in:slim,round',
+            'quantity'       => 'required|numeric|min:0',
+            'unit'           => 'required|string|max:50',
+            'min_quantity'   => 'nullable|numeric|min:0',
+            'cost_per_unit'  => 'nullable|numeric|min:0',
+            'notes'          => 'nullable|string',
         ]);
 
         $inventoryItem->update($validated);

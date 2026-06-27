@@ -20,6 +20,7 @@ interface InventoryItem {
     id: number;
     name: string;
     category: string;
+    container_type: 'slim' | 'round' | null;
     quantity: number;
     unit: string;
     min_quantity: number | null;
@@ -42,13 +43,14 @@ function fmt(n: number) {
 
 function ItemForm({ item, onClose }: { item?: InventoryItem; onClose: () => void }) {
     const { data, setData, post, put, processing, errors } = useForm({
-        name: item?.name ?? '',
-        category: item?.category ?? '',
-        quantity: item?.quantity?.toString() ?? '0',
-        unit: item?.unit ?? 'pcs',
-        min_quantity: item?.min_quantity?.toString() ?? '',
-        cost_per_unit: item?.cost_per_unit?.toString() ?? '',
-        notes: item?.notes ?? '',
+        name:           item?.name ?? '',
+        category:       item?.category ?? '',
+        container_type: item?.container_type ?? '',
+        quantity:       item?.quantity?.toString() ?? '0',
+        unit:           item?.unit ?? 'pcs',
+        min_quantity:   item?.min_quantity?.toString() ?? '',
+        cost_per_unit:  item?.cost_per_unit?.toString() ?? '',
+        notes:          item?.notes ?? '',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -81,6 +83,30 @@ function ItemForm({ item, onClose }: { item?: InventoryItem; onClose: () => void
                         onChange={(e) => setData('category', e.target.value)}
                         placeholder="e.g. Containers"
                     />
+                </div>
+                <div>
+                    <Label>
+                        Container Return Tracking{' '}
+                        <span className="font-normal text-muted-foreground">(optional)</span>
+                    </Label>
+                    <Select
+                        value={data.container_type || 'none'}
+                        onValueChange={(v) => setData('container_type', v === 'none' ? '' : v)}
+                    >
+                        <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Not a container" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="none">Not a container</SelectItem>
+                            <SelectItem value="slim">Slim jug (19L) — auto-restock on returns</SelectItem>
+                            <SelectItem value="round">Round jug (5gal) — auto-restock on returns</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    {data.container_type && (
+                        <p className="mt-1 text-[11px] text-blue-600">
+                            Stock will increase automatically when customers return this type.
+                        </p>
+                    )}
                 </div>
                 <div>
                     <Label>Unit</Label>
@@ -364,6 +390,7 @@ export default function InventoryIndex({ items, low_stock_count, total_value }: 
                                                 <th className="px-4 py-3">Cost/Unit</th>
                                                 <th className="px-4 py-3 text-right">Total Value</th>
                                                 <th className="px-4 py-3">Status</th>
+                                                <th className="px-4 py-3">Returns</th>
                                                 <th className="px-4 py-3" />
                                             </tr>
                                         </thead>
@@ -410,6 +437,15 @@ export default function InventoryIndex({ items, low_stock_count, total_value }: 
                                                             <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
                                                                 OK
                                                             </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        {item.container_type ? (
+                                                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${item.container_type === 'slim' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                                                                {item.container_type === 'slim' ? 'Slim (19L)' : 'Round (5gal)'}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-xs text-muted-foreground">—</span>
                                                         )}
                                                     </td>
                                                     <td className="px-4 py-3">

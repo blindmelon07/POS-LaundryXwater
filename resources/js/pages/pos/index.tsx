@@ -569,21 +569,34 @@ export default function PosIndex({ products, customers }: Props) {
                                     <p className="text-xs text-destructive">{errors.items}</p>
                                 )}
 
-                                <Button
-                                    type="submit"
-                                    size="lg"
-                                    className="w-full bg-blue-600 hover:bg-blue-700 active:scale-95"
-                                    disabled={processing || cart.length === 0 || !formData.amount_paid}
-                                >
-                                    {processing ? (
-                                        <span className="flex items-center gap-2">
-                                            <span className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                                            Processing…
-                                        </span>
-                                    ) : (
-                                        `Charge ${fmt(total)}`
-                                    )}
-                                </Button>
+                                {(() => {
+                                    const hasItems = cart.length > 0;
+                                    const hasReturns = slimReturned > 0 || roundReturned > 0;
+                                    const returnOnly = !hasItems && hasReturns;
+                                    const isDisabled = processing
+                                        || (!hasItems && !hasReturns)
+                                        || (hasItems && !formData.amount_paid);
+
+                                    return (
+                                        <Button
+                                            type="submit"
+                                            size="lg"
+                                            className="w-full active:scale-95 bg-blue-600 hover:bg-blue-700"
+                                            disabled={isDisabled}
+                                        >
+                                            {processing ? (
+                                                <span className="flex items-center gap-2">
+                                                    <span className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                                                    Saving…
+                                                </span>
+                                            ) : returnOnly ? (
+                                                'Save Return'
+                                            ) : (
+                                                `Charge ${fmt(total)}`
+                                            )}
+                                        </Button>
+                                    );
+                                })()}
                             </form>
                         </CardContent>
                     </Card>
