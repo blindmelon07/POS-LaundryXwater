@@ -1,7 +1,19 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import {
+    BarChart3,
+    Boxes,
+    ClipboardList,
+    LayoutGrid,
+    Package,
+    PackageSearch,
+    Receipt,
+    Settings,
+    ShoppingCart,
+    Truck,
+    Users,
+    Wallet,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -13,31 +25,33 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { usePermission } from '@/hooks/use-permission';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
-
 export function AppSidebar() {
+    const { can } = usePermission();
+
+    const mainNavItems: NavItem[] = [
+        { title: 'Dashboard', href: '/dashboard', icon: LayoutGrid },
+        ...(can('use pos') ? [{ title: 'POS Terminal', href: '/pos', icon: ShoppingCart }] : []),
+        ...(can('view sales') ? [{ title: 'Sales History', href: '/sales', icon: Receipt }] : []),
+        { title: 'Customers', href: '/customers', icon: Users },
+        { title: 'Deliveries', href: '/deliveries', icon: Truck },
+        { title: 'Container Tracking', href: '/containers', icon: Package },
+        ...(can('manage products') ? [{ title: 'Products', href: '/products', icon: PackageSearch }] : []),
+        ...(can('manage expenses') ? [{ title: 'Expenses', href: '/expenses', icon: Wallet }] : []),
+        ...(can('manage inventory') ? [{ title: 'Inventory', href: '/inventory', icon: Boxes }] : []),
+        ...(can('view reports') ? [
+            { title: 'Reports', href: '/reports', icon: BarChart3 },
+            { title: 'Z-Report', href: '/z-report', icon: ClipboardList },
+        ] : []),
+        ...(can('manage users') ? [
+            { title: 'Users & Roles', href: '/users', icon: Users },
+            { title: 'Business Settings', href: '/business-settings', icon: Settings },
+        ] : []),
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -57,7 +71,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
