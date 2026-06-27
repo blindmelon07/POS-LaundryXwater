@@ -13,14 +13,16 @@ class ProductController extends Controller
     public function index(): Response
     {
         $products = Product::orderBy('type')->get()->map(fn ($p) => [
-            'id' => $p->id,
-            'name' => $p->name,
-            'type' => $p->type,
+            'id'         => $p->id,
+            'name'       => $p->name,
+            'type'       => $p->type,
             'type_label' => $p->type_label,
-            'price' => (float) $p->price,
-            'unit' => $p->unit,
-            'notes' => $p->notes,
-            'is_active' => $p->is_active,
+            'price'      => (float) $p->price,
+            'unit'       => $p->unit,
+            'notes'      => $p->notes,
+            'is_active'  => $p->is_active,
+            'promo_buy'  => $p->promo_buy,
+            'promo_get'  => $p->promo_get,
         ]);
 
         return Inertia::render('products/index', [
@@ -36,8 +38,10 @@ class ProductController extends Controller
             'type' => 'required|in:slim_wholesale,slim_regular,slim_commercial,container_slim,container_round,delivery,other',
             'price' => 'required|numeric|min:0',
             'unit' => 'required|string|max:100',
-            'notes' => 'nullable|string|max:255',
+            'notes'     => 'nullable|string|max:255',
             'is_active' => 'boolean',
+            'promo_buy' => 'nullable|integer|min:1',
+            'promo_get' => 'nullable|integer|min:1',
         ]);
 
         Product::create($validated);
@@ -51,8 +55,10 @@ class ProductController extends Controller
             'type' => 'required|in:slim_wholesale,slim_regular,slim_commercial,container_slim,container_round,delivery,other',
             'price' => 'required|numeric|min:0',
             'unit' => 'required|string|max:100',
-            'notes' => 'nullable|string|max:255',
+            'notes'     => 'nullable|string|max:255',
             'is_active' => 'boolean',
+            'promo_buy' => 'nullable|integer|min:1',
+            'promo_get' => 'nullable|integer|min:1',
         ]);
 
         $product->update($validated);

@@ -12,6 +12,7 @@ import {
     ShoppingBag,
     ShoppingCart,
     Truck,
+    UserSquare2,
     Users,
     Wallet,
     WashingMachine,
@@ -36,25 +37,37 @@ export function AppSidebar() {
     const { can } = usePermission();
 
     const waterNavItems: NavItem[] = [
-        { title: 'Dashboard', href: '/dashboard', icon: LayoutGrid },
-        ...(can('use pos') ? [{ title: 'POS Terminal', href: '/pos', icon: ShoppingCart }] : []),
-        ...(can('view sales') ? [{ title: 'Sales History', href: '/sales', icon: Receipt }] : []),
-        ...(can('view deliveries') ? [{ title: 'Deliveries', href: '/deliveries', icon: Truck }] : []),
-        ...(can('manage loading') ? [{ title: 'Loading Log', href: '/loading-log', icon: NotebookPen }] : []),
+        // ── Daily operations ──────────────────────────────
+        { title: 'Dashboard',     href: '/dashboard', icon: LayoutGrid },
+        ...(can('use pos')    ? [{ title: 'POS Terminal',   href: '/pos',    icon: ShoppingCart }] : []),
+        ...(can('view sales') ? [{ title: 'Sales History',  href: '/sales',  icon: Receipt      }] : []),
+
+        // ── Customers & Containers ────────────────────────
         ...(can('use pos') ? [
-            { title: 'Customers', href: '/customers', icon: Users },
-            { title: 'Container Tracking', href: '/containers', icon: Package },
+            { title: 'Customers',          href: '/customers',  icon: Users    },
+            { title: 'Container Tracking', href: '/containers', icon: Package  },
         ] : []),
-        ...(can('manage products') ? [{ title: 'Products', href: '/products', icon: PackageSearch }] : []),
-        ...(can('manage expenses') ? [{ title: 'Expenses', href: '/expenses', icon: Wallet }] : []),
-        ...(can('manage inventory') ? [{ title: 'Water Inventory', href: '/inventory', icon: Boxes }] : []),
+
+        // ── Delivery workflow ─────────────────────────────
+        ...(can('view deliveries') ? [{ title: 'Deliveries',  href: '/deliveries',  icon: Truck       }] : []),
+        ...(can('manage loading')  ? [{ title: 'Loading Log', href: '/loading-log', icon: NotebookPen }] : []),
+
+        // ── Store management ──────────────────────────────
+        ...(can('manage products')  ? [{ title: 'Products',        href: '/products',  icon: PackageSearch }] : []),
+        ...(can('manage expenses')   ? [{ title: 'Expenses',        href: '/expenses',   icon: Wallet        }] : []),
+        ...(can('manage employees')  ? [{ title: 'Employees',       href: '/employees',  icon: UserSquare2   }] : []),
+        ...(can('manage inventory')  ? [{ title: 'Water Inventory', href: '/inventory',  icon: Boxes         }] : []),
+
+        // ── Reports ───────────────────────────────────────
         ...(can('view reports') ? [
-            { title: 'Reports', href: '/reports', icon: BarChart3 },
-            { title: 'Z-Report', href: '/z-report', icon: ClipboardList },
+            { title: 'Reports',   href: '/reports',  icon: BarChart3   },
+            { title: 'Z-Report',  href: '/z-report', icon: ClipboardList },
         ] : []),
+
+        // ── Admin ─────────────────────────────────────────
         ...(can('manage users') ? [
-            { title: 'Users & Roles', href: '/users', icon: Users },
-            { title: 'Business Settings', href: '/business-settings', icon: Settings },
+            { title: 'Users & Roles',      href: '/users',             icon: Users    },
+            { title: 'Business Settings',  href: '/business-settings', icon: Settings },
         ] : []),
     ];
 

@@ -11,42 +11,43 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
+        // ── User Accounts ─────────────────────────────────────────────────────
         User::firstOrCreate(['email' => 'admin@pos.com'], [
-            'name' => 'Admin',
-            'email' => 'admin@pos.com',
-            'password' => Hash::make('admin1234'),
-            'email_verified_at' => now(),
+            'name'               => 'Admin',
+            'password'           => Hash::make('admin1234'),
+            'email_verified_at'  => now(),
         ]);
 
         User::firstOrCreate(['email' => 'cashier@pos.com'], [
-            'name' => 'Cashier',
-            'email' => 'cashier@pos.com',
-            'password' => Hash::make('cashier1234'),
-            'email_verified_at' => now(),
+            'name'               => 'Cashier',
+            'password'           => Hash::make('cashier1234'),
+            'email_verified_at'  => now(),
         ]);
 
         User::firstOrCreate(['email' => 'rider@pos.com'], [
-            'name' => 'Rider',
-            'email' => 'rider@pos.com',
-            'password' => Hash::make('rider1234'),
-            'email_verified_at' => now(),
+            'name'               => 'Rider',
+            'password'           => Hash::make('rider1234'),
+            'email_verified_at'  => now(),
         ]);
 
         User::firstOrCreate(['email' => 'loader@pos.com'], [
-            'name' => 'Loader',
-            'email' => 'loader@pos.com',
-            'password' => Hash::make('loader1234'),
-            'email_verified_at' => now(),
+            'name'               => 'Loader',
+            'password'           => Hash::make('loader1234'),
+            'email_verified_at'  => now(),
         ]);
 
+        // ── Core Seeders (always run) ─────────────────────────────────────────
         $this->call([
-            ProductSeeder::class,
-            RolePermissionSeeder::class,
+            RolePermissionSeeder::class,   // roles, permissions, assign to users
+            ProductSeeder::class,          // products & prices with promo rules
+            SettingsSeeder::class,         // Jaz Pure business settings
+            EmployeeSeeder::class,         // default employees linked to user accounts
         ]);
+
+        // ── Optional: Sample Data for Demo/Testing ────────────────────────────
+        // Uncomment the line below to seed sample customers, sales, expenses, etc.
+        // $this->call(SampleDataSeeder::class);
     }
 }

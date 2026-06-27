@@ -26,6 +26,7 @@ function adminUser(): User
         'view dashboard', 'use pos', 'view sales', 'delete sales',
         'manage products', 'manage expenses', 'manage inventory',
         'view reports', 'view deliveries', 'manage deliveries',
+        'manage loading', 'manage employees',
         'manage users', 'manage roles',
     ];
     $cashierPerms = [

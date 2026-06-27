@@ -38,12 +38,17 @@ function fmt(n: number) {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-    utilities: 'bg-blue-100 text-blue-700 border border-blue-200',
-    supplies: 'bg-amber-100 text-amber-700 border border-amber-200',
-    maintenance: 'bg-orange-100 text-orange-700 border border-orange-200',
-    salaries: 'bg-violet-100 text-violet-700 border border-violet-200',
-    rent: 'bg-indigo-100 text-indigo-700 border border-indigo-200',
-    other: 'bg-slate-100 text-slate-600 border border-slate-200',
+    round_gallons:  'bg-orange-100 text-orange-700 border border-orange-200',
+    slim_gallons:   'bg-cyan-100 text-cyan-700 border border-cyan-200',
+    dispenser:      'bg-blue-100 text-blue-700 border border-blue-200',
+    electricity:    'bg-yellow-100 text-yellow-700 border border-yellow-200',
+    water_bill:     'bg-sky-100 text-sky-700 border border-sky-200',
+    salt:           'bg-slate-100 text-slate-600 border border-slate-200',
+    filter:         'bg-teal-100 text-teal-700 border border-teal-200',
+    salaries:       'bg-violet-100 text-violet-700 border border-violet-200',
+    miscellaneous:  'bg-pink-100 text-pink-700 border border-pink-200',
+    other_supplies: 'bg-amber-100 text-amber-700 border border-amber-200',
+    transportation: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
 };
 
 function ExpenseForm({
@@ -60,7 +65,7 @@ function ExpenseForm({
             ? new Date(expense.date).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0],
         description: expense?.description ?? '',
-        category: expense?.category ?? 'other',
+        category: expense?.category ?? 'miscellaneous',
         amount: expense?.amount?.toString() ?? '',
         receipt_number: expense?.receipt_number ?? '',
         notes: expense?.notes ?? '',

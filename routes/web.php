@@ -1,8 +1,9 @@
 <?php
 
 use App\Http\Controllers\ContainerController;
-use App\Http\Controllers\LoadingLogController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\LoadingLogController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryOrderController;
 use App\Http\Controllers\ExpenseController;
@@ -80,6 +81,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('can:manage deliveries')->group(function () {
         Route::post('deliveries', [DeliveryOrderController::class, 'store'])->name('deliveries.store');
         Route::delete('deliveries/{deliveryOrder}', [DeliveryOrderController::class, 'destroy'])->name('deliveries.destroy');
+    });
+
+    // Employees & Salary
+    Route::middleware('can:manage employees')->group(function () {
+        Route::get('employees', [EmployeeController::class, 'index'])->name('employees.index');
+        Route::post('employees', [EmployeeController::class, 'store'])->name('employees.store');
+        Route::get('employees/{employee}', [EmployeeController::class, 'show'])->name('employees.show');
+        Route::put('employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
+        Route::delete('employees/{employee}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
+        Route::post('employees/{employee}/salary', [EmployeeController::class, 'storeSalary'])->name('employees.salary.store');
+        Route::delete('salary-records/{salaryRecord}', [EmployeeController::class, 'destroySalary'])->name('salary-records.destroy');
     });
 
     // Loading Log

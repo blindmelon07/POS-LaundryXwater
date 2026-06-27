@@ -25,14 +25,17 @@ class Expense extends Model
     public static function categoryLabels(): array
     {
         return [
-            'water_supply' => 'Water Supply / Chemicals',
-            'electricity' => 'Electricity',
-            'rent' => 'Rent',
-            'salaries' => 'Salaries',
-            'packaging' => 'Packaging / Containers',
-            'maintenance' => 'Maintenance',
-            'delivery' => 'Fuel / Delivery',
-            'other' => 'Other',
+            'round_gallons'   => 'Round Gallons',
+            'slim_gallons'    => 'Slim Gallons',
+            'dispenser'       => 'Dispenser',
+            'electricity'     => 'Soreco (Electricity Bill)',
+            'water_bill'      => 'Prime Water (Water Bill)',
+            'salt'            => 'Salt',
+            'filter'          => 'Filter',
+            'salaries'        => 'Salary + Bonus',
+            'miscellaneous'   => 'Miscellaneous',
+            'other_supplies'  => 'Other Supplies',
+            'transportation'  => 'Transportation',
         ];
     }
 

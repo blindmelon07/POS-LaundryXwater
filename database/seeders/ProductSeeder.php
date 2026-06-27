@@ -18,6 +18,7 @@ class ProductSeeder extends Seeder
                 'unit'      => 'Per gallon',
                 'notes'     => 'Delivery – Wholesale',
                 'is_active' => true,
+                'promo_get' => 1,
             ],
             [
                 'name'      => 'Slim/Round Regular',
@@ -26,6 +27,7 @@ class ProductSeeder extends Seeder
                 'unit'      => 'Per gallon',
                 'notes'     => 'Delivery – Regular',
                 'is_active' => true,
+                'promo_get' => 1,
             ],
             [
                 'name'      => 'Slim/Round Commercial',
@@ -34,6 +36,7 @@ class ProductSeeder extends Seeder
                 'unit'      => 'Per gallon',
                 'notes'     => 'Delivery – Commercial',
                 'is_active' => true,
+                'promo_get' => 1,
             ],
 
             // ── Walk-in ───────────────────────────────────────────────
@@ -44,6 +47,7 @@ class ProductSeeder extends Seeder
                 'unit'      => 'Per gallon',
                 'notes'     => 'Walk-in',
                 'is_active' => true,
+                'promo_get' => 1,
             ],
             [
                 'name'      => 'Slim/Round Walk-in/Delivered',
@@ -52,6 +56,7 @@ class ProductSeeder extends Seeder
                 'unit'      => 'Per gallon',
                 'notes'     => 'Walk-in / Delivered',
                 'is_active' => true,
+                'promo_get' => 1,
             ],
 
             // ── Products for sale ─────────────────────────────────────

@@ -25,6 +25,7 @@ class RolePermissionSeeder extends Seeder
             'view deliveries',
             'manage deliveries',
             'manage loading',
+            'manage employees',
             'manage users',
             'manage roles',
         ];
@@ -33,7 +34,7 @@ class RolePermissionSeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission]);
         }
 
-        // Admin — full access
+        // Admin — full access (includes manage employees)
         $admin = Role::firstOrCreate(['name' => 'admin']);
         $admin->syncPermissions($permissions);
 

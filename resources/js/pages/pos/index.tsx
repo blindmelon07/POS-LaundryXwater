@@ -16,6 +16,8 @@ interface Product {
     price: number;
     unit: string;
     notes: string | null;
+    promo_buy: number | null;
+    promo_get: number | null;
 }
 
 interface Customer {
@@ -30,6 +32,7 @@ interface CartItem {
     product: Product;
     quantity: number;
     containers_returned: number;
+    include_promo: boolean;
 }
 
 interface Props {
@@ -93,8 +96,16 @@ export default function PosIndex({ products, customers }: Props) {
                     i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i,
                 );
             }
-            return [...prev, { product, quantity: 1, containers_returned: 0 }];
+            return [...prev, { product, quantity: 1, containers_returned: 0, include_promo: false }];
         });
+    };
+
+    const togglePromo = (productId: number) => {
+        setCart((prev) =>
+            prev.map((i) =>
+                i.product.id === productId ? { ...i, include_promo: !i.include_promo } : i,
+            ),
+        );
     };
 
     const updateQty = (productId: number, delta: number) => {
@@ -118,6 +129,13 @@ export default function PosIndex({ products, customers }: Props) {
     const removeItem = (productId: number) => {
         setCart((prev) => prev.filter((i) => i.product.id !== productId));
     };
+
+    // Optional promo: only included when cashier explicitly toggles it on
+    const promoFreeItems = cart.flatMap((item) => {
+        const get = item.product.promo_get;
+        if (!get || !item.include_promo) return [];
+        return [{ product: item.product, freeQty: get }];
+    });
 
     const subtotal    = cart.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
     const total       = Math.max(0, subtotal - discount);
@@ -152,6 +170,10 @@ export default function PosIndex({ products, customers }: Props) {
                     product_id:          i.product.id,
                     quantity:            i.quantity,
                     containers_returned: i.containers_returned,
+                })),
+                promo_items: promoFreeItems.map((p) => ({
+                    product_id: p.product.id,
+                    quantity:   p.freeQty,
                 })),
             },
             {
@@ -291,6 +313,23 @@ export default function PosIndex({ products, customers }: Props) {
                                                             {fmt(item.product.price * item.quantity)}
                                                         </span>
                                                     </p>
+                                                    {/* Optional free gallon toggle */}
+                                                    {item.product.promo_get ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => togglePromo(item.product.id)}
+                                                            className={`mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                                                                item.include_promo
+                                                                    ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-300'
+                                                                    : 'bg-muted text-muted-foreground hover:bg-amber-50 hover:text-amber-600'
+                                                            }`}
+                                                        >
+                                                            <span>{item.include_promo ? '✓' : '+'}</span>
+                                                            {item.include_promo
+                                                                ? `+${item.product.promo_get} free gallon included`
+                                                                : `Add +${item.product.promo_get} free gallon?`}
+                                                        </button>
+                                                    ) : null}
                                                 </div>
                                                 <button
                                                     onClick={() => removeItem(item.product.id)}

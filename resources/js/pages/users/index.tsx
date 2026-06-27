@@ -15,6 +15,9 @@ interface User {
     email: string;
     roles: string[];
     created_at: string;
+    employee_id: number | null;
+    position: string | null;
+    base_salary: number | null;
 }
 
 interface Props {
@@ -42,6 +45,7 @@ const ROLE_PERMS: Record<string, string[]> = {
         'view dashboard', 'use pos', 'view sales', 'delete sales',
         'manage products', 'manage expenses', 'manage inventory',
         'view reports', 'view deliveries', 'manage deliveries',
+        'manage loading', 'manage employees',
         'manage users', 'manage roles',
     ],
     cashier: [
@@ -368,6 +372,8 @@ export default function UsersIndex({ users, roles, available_permissions }: Prop
                                         <tr className="border-b bg-muted/40 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                                             <th className="px-4 py-3">User</th>
                                             <th className="px-4 py-3">Role</th>
+                                            <th className="px-4 py-3">Position</th>
+                                            <th className="px-4 py-3 text-right">Base Salary</th>
                                             <th className="px-4 py-3">Joined</th>
                                             <th className="px-4 py-3" />
                                         </tr>
@@ -410,6 +416,30 @@ export default function UsersIndex({ users, roles, available_permissions }: Prop
                                                             </span>
                                                         )}
                                                     </div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    {user.position ? (
+                                                        <span className="text-sm text-muted-foreground">{user.position}</span>
+                                                    ) : (
+                                                        <span className="text-xs italic text-muted-foreground/50">Not set</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    {user.base_salary != null ? (
+                                                        <div>
+                                                            <p className="font-semibold tabular-nums text-violet-700">
+                                                                ₱{user.base_salary.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                                            </p>
+                                                            {user.employee_id && (
+                                                                <a href={`/employees/${user.employee_id}`}
+                                                                    className="text-[10px] text-blue-600 hover:underline">
+                                                                    view records
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs italic text-muted-foreground/50">No record</span>
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3 text-muted-foreground">
                                                     {user.created_at}

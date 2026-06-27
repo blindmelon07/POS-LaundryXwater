@@ -14,12 +14,15 @@ class UserController extends Controller
 {
     public function index(): Response
     {
-        $users = User::with('roles')->orderBy('name')->get()->map(fn ($u) => [
-            'id' => $u->id,
-            'name' => $u->name,
-            'email' => $u->email,
-            'roles' => $u->roles->pluck('name'),
-            'created_at' => $u->created_at->format('M d, Y'),
+        $users = User::with(['roles', 'employee'])->orderBy('name')->get()->map(fn ($u) => [
+            'id'          => $u->id,
+            'name'        => $u->name,
+            'email'       => $u->email,
+            'roles'       => $u->roles->pluck('name'),
+            'created_at'  => $u->created_at->format('M d, Y'),
+            'employee_id' => $u->employee?->id,
+            'position'    => $u->employee?->position,
+            'base_salary' => $u->employee ? (float) $u->employee->base_salary : null,
         ]);
 
         $roles = Role::orderBy('name')->pluck('name');

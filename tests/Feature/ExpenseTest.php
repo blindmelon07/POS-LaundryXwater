@@ -45,26 +45,26 @@ test('can update an expense', function () {
     $expense = Expense::create([
         'date' => today(),
         'description' => 'Old description',
-        'category' => 'rent',
+        'category' => 'salaries',
         'amount' => 5000,
         'user_id' => $this->admin->id,
     ]);
 
     $this->put("/expenses/{$expense->id}", [
         'date' => today()->toDateString(),
-        'description' => 'Updated rent',
-        'category' => 'rent',
+        'description' => 'Updated salary',
+        'category' => 'salaries',
         'amount' => 5500,
     ]);
 
-    expect($expense->fresh()->description)->toBe('Updated rent');
+    expect($expense->fresh()->description)->toBe('Updated salary');
     expect($expense->fresh()->amount)->toBe('5500.00');
 });
 
 test('can delete an expense', function () {
     $expense = Expense::create([
         'date' => today(), 'description' => 'To delete',
-        'category' => 'other', 'amount' => 100,
+        'category' => 'miscellaneous', 'amount' => 100,
         'user_id' => $this->admin->id,
     ]);
 
@@ -74,11 +74,11 @@ test('can delete an expense', function () {
 
 test('category label accessor returns readable name', function () {
     $expense = Expense::create([
-        'date' => today(), 'description' => 'Test', 'category' => 'water_supply',
+        'date' => today(), 'description' => 'Test', 'category' => 'electricity',
         'amount' => 500, 'user_id' => $this->admin->id,
     ]);
 
-    expect($expense->category_label)->toBe('Water Supply / Chemicals');
+    expect($expense->category_label)->toBe('Soreco (Electricity Bill)');
 });
 
 test('cashier can manage expenses', function () {
@@ -88,6 +88,6 @@ test('cashier can manage expenses', function () {
     $this->get('/expenses')->assertOk();
     $this->post('/expenses', [
         'date' => today()->toDateString(),
-        'description' => 'Fuel', 'category' => 'delivery', 'amount' => 300,
+        'description' => 'Fuel', 'category' => 'transportation', 'amount' => 300,
     ])->assertRedirect();
 });

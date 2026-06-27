@@ -17,6 +17,8 @@ interface Product {
     unit: string;
     notes: string | null;
     is_active: boolean;
+    promo_buy: number | null;
+    promo_get: number | null;
 }
 
 interface Props {
@@ -48,12 +50,14 @@ function ProductForm({
     onClose: () => void;
 }) {
     const { data, setData, post, put, processing, errors } = useForm({
-        name: product?.name ?? '',
-        type: product?.type ?? 'slim_wholesale',
-        price: product?.price?.toString() ?? '',
-        unit: product?.unit ?? 'Per gallon',
-        notes: product?.notes ?? '',
+        name:      product?.name ?? '',
+        type:      product?.type ?? 'slim_wholesale',
+        price:     product?.price?.toString() ?? '',
+        unit:      product?.unit ?? 'Per gallon',
+        notes:     product?.notes ?? '',
         is_active: product?.is_active ?? true,
+        promo_buy: product?.promo_buy?.toString() ?? '',
+        promo_get: product?.promo_get?.toString() ?? '',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -125,6 +129,34 @@ function ProductForm({
                     placeholder="Any additional info"
                 />
             </div>
+            {/* Promo Rule */}
+            <div className="rounded-lg border bg-amber-50 p-3">
+                <p className="mb-1 text-xs font-semibold text-amber-800">
+                    Free Gallon Promo <span className="font-normal text-muted-foreground">(optional)</span>
+                </p>
+                <p className="mb-2 text-[11px] text-amber-700">
+                    Every sale of this product automatically includes free gallons — regardless of quantity ordered.
+                </p>
+                <div className="flex items-center gap-3">
+                    <div className="w-32">
+                        <Label className="text-xs">Free gallons to add</Label>
+                        <Input
+                            className="mt-1 h-8 text-sm"
+                            type="number"
+                            min={1}
+                            value={data.promo_get}
+                            onChange={(e) => setData('promo_get', e.target.value)}
+                            placeholder="e.g. 1"
+                        />
+                    </div>
+                    {data.promo_get && (
+                        <p className="mt-4 text-[11px] text-amber-700">
+                            → +{data.promo_get} free gallon{parseInt(data.promo_get) > 1 ? 's' : ''} auto-added on every sale
+                        </p>
+                    )}
+                </div>
+            </div>
+
             <div className="flex items-center gap-2 rounded-lg border bg-muted/30 p-3">
                 <input
                     type="checkbox"
@@ -181,6 +213,7 @@ export default function ProductsIndex({ products, type_labels }: Props) {
                         <th className="px-4 py-3">Type</th>
                         <th className="px-4 py-3">Price</th>
                         <th className="px-4 py-3">Unit</th>
+                        <th className="px-4 py-3">Promo</th>
                         <th className="px-4 py-3">Notes</th>
                         <th className="px-4 py-3">Status</th>
                         <th className="px-4 py-3" />
@@ -202,6 +235,15 @@ export default function ProductsIndex({ products, type_labels }: Props) {
                             </td>
                             <td className="px-4 py-3 font-bold tabular-nums text-blue-700">{fmt(p.price)}</td>
                             <td className="px-4 py-3 text-muted-foreground">{p.unit}</td>
+                            <td className="px-4 py-3">
+                                {p.promo_get ? (
+                                    <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                                        +{p.promo_get} free
+                                    </span>
+                                ) : (
+                                    <span className="text-xs text-muted-foreground">—</span>
+                                )}
+                            </td>
                             <td className="px-4 py-3 text-muted-foreground">{p.notes ?? '—'}</td>
                             <td className="px-4 py-3">
                                 <span

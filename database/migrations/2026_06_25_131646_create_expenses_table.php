@@ -15,10 +15,7 @@ return new class extends Migration
             $table->id();
             $table->date('date');
             $table->string('description');
-            $table->enum('category', [
-                'water_supply', 'electricity', 'rent', 'salaries',
-                'packaging', 'maintenance', 'delivery', 'other',
-            ]);
+            $table->string('category');
             $table->decimal('amount', 10, 2);
             $table->string('receipt_number')->nullable();
             $table->text('notes')->nullable();

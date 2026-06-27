@@ -24,6 +24,8 @@ class PosController extends Controller
             'price'      => (float) $p->price,
             'unit'       => $p->unit,
             'notes'      => $p->notes,
+            'promo_buy'  => $p->promo_buy,
+            'promo_get'  => $p->promo_get,
         ]);
 
         $customers = Customer::where('is_active', true)
@@ -58,6 +60,9 @@ class PosController extends Controller
             'items.*.product_id'           => 'required|exists:products,id',
             'items.*.quantity'             => 'required|integer|min:1',
             'items.*.containers_returned'  => 'nullable|integer|min:0',
+            'promo_items'                  => 'nullable|array',
+            'promo_items.*.product_id'     => 'required|exists:products,id',
+            'promo_items.*.quantity'       => 'required|integer|min:1',
         ]);
 
         $items    = [];
@@ -109,6 +114,21 @@ class PosController extends Controller
 
         foreach ($items as $item) {
             $sale->items()->create($item);
+        }
+
+        // Save promo (free) items at ₱0.00
+        foreach ($validated['promo_items'] ?? [] as $promo) {
+            $product = Product::find($promo['product_id']);
+            if (!$product) continue;
+            $sale->items()->create([
+                'product_id'          => $product->id,
+                'product_name'        => $product->name . ' (Free)',
+                'product_type'        => $product->type,
+                'unit_price'          => 0,
+                'quantity'            => $promo['quantity'],
+                'containers_returned' => 0,
+                'subtotal'            => 0,
+            ]);
         }
 
         // Auto-deduct returned containers from the linked customer's balance

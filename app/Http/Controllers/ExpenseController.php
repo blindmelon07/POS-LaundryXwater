@@ -50,7 +50,7 @@ class ExpenseController extends Controller
         $validated = $request->validate([
             'date' => 'required|date',
             'description' => 'required|string|max:255',
-            'category' => 'required|in:water_supply,electricity,rent,salaries,packaging,maintenance,delivery,other',
+            'category' => 'required|in:round_gallons,slim_gallons,dispenser,electricity,water_bill,salt,filter,salaries,miscellaneous,other_supplies,transportation',
             'amount' => 'required|numeric|min:0',
             'receipt_number' => 'nullable|string|max:100',
             'notes' => 'nullable|string',
@@ -67,7 +67,7 @@ class ExpenseController extends Controller
         $validated = $request->validate([
             'date' => 'required|date',
             'description' => 'required|string|max:255',
-            'category' => 'required|in:water_supply,electricity,rent,salaries,packaging,maintenance,delivery,other',
+            'category' => 'required|in:round_gallons,slim_gallons,dispenser,electricity,water_bill,salt,filter,salaries,miscellaneous,other_supplies,transportation',
             'amount' => 'required|numeric|min:0',
             'receipt_number' => 'nullable|string|max:100',
             'notes' => 'nullable|string',
