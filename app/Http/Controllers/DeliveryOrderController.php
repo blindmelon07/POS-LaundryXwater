@@ -41,15 +41,16 @@ class DeliveryOrderController extends Controller
         $pendingCount = DeliveryOrder::where('status', 'pending')->count();
 
         return Inertia::render('deliveries/index', [
-            'orders' => $orders,
-            'filters' => $request->only(['status', 'date']),
-            'status_labels' => DeliveryOrder::statusLabels(),
-            'customers' => Customer::active()->orderBy('name')->get(['id', 'name', 'phone', 'address', 'type']),
-            'products' => Product::active()->orderBy('type')->get(['id', 'name', 'type', 'price', 'unit']),
-            'summary' => [
-                'today' => $todayCount,
+            'orders'           => $orders,
+            'filters'          => $request->only(['status', 'date']),
+            'status_labels'    => DeliveryOrder::statusLabels(),
+            'customers'        => Customer::active()->orderBy('name')->get(['id', 'name', 'phone', 'address', 'type']),
+            'products'         => Product::active()->orderBy('type')->get(['id', 'name', 'type', 'price', 'unit']),
+            'summary'          => [
+                'today'   => $todayCount,
                 'pending' => $pendingCount,
             ],
+            'can_manage' => auth()->user()?->can('manage deliveries') ?? false,
         ]);
     }
 

@@ -30,7 +30,8 @@ class UserController extends Controller
             'available_permissions' => [
                 'view dashboard', 'use pos', 'view sales', 'delete sales',
                 'manage products', 'manage expenses', 'manage inventory',
-                'view reports', 'manage users', 'manage roles',
+                'view reports', 'view deliveries', 'manage deliveries',
+                'manage users', 'manage roles',
             ],
         ]);
     }

@@ -24,29 +24,40 @@ interface Props {
 }
 
 const ROLE_STYLES: Record<string, string> = {
-    admin: 'bg-red-100 text-red-700 border border-red-200',
+    admin:   'bg-red-100 text-red-700 border border-red-200',
     cashier: 'bg-blue-100 text-blue-700 border border-blue-200',
+    rider:   'bg-emerald-100 text-emerald-700 border border-emerald-200',
+    loader:  'bg-amber-100 text-amber-700 border border-amber-200',
 };
 
 const ROLE_ICON_STYLES: Record<string, string> = {
-    admin: 'bg-red-50 text-red-600',
+    admin:   'bg-red-50 text-red-600',
     cashier: 'bg-blue-50 text-blue-600',
+    rider:   'bg-emerald-50 text-emerald-600',
+    loader:  'bg-amber-50 text-amber-600',
 };
 
 const ROLE_PERMS: Record<string, string[]> = {
     admin: [
-        'view dashboard',
-        'use pos',
-        'view sales',
-        'delete sales',
-        'manage products',
-        'manage expenses',
-        'manage inventory',
-        'view reports',
-        'manage users',
-        'manage roles',
+        'view dashboard', 'use pos', 'view sales', 'delete sales',
+        'manage products', 'manage expenses', 'manage inventory',
+        'view reports', 'view deliveries', 'manage deliveries',
+        'manage users', 'manage roles',
     ],
-    cashier: ['view dashboard', 'use pos', 'view sales', 'manage expenses', 'view reports'],
+    cashier: [
+        'view dashboard', 'use pos', 'view sales',
+        'manage expenses', 'view reports',
+        'view deliveries', 'manage deliveries',
+    ],
+    rider: [
+        'view dashboard',
+        'view deliveries',
+    ],
+    loader: [
+        'view dashboard',
+        'view deliveries',
+        'manage loading',
+    ],
 };
 
 function initials(name: string) {

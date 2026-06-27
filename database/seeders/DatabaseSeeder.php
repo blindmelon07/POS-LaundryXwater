@@ -30,6 +30,20 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
+        User::firstOrCreate(['email' => 'rider@pos.com'], [
+            'name' => 'Rider',
+            'email' => 'rider@pos.com',
+            'password' => Hash::make('rider1234'),
+            'email_verified_at' => now(),
+        ]);
+
+        User::firstOrCreate(['email' => 'loader@pos.com'], [
+            'name' => 'Loader',
+            'email' => 'loader@pos.com',
+            'password' => Hash::make('loader1234'),
+            'email_verified_at' => now(),
+        ]);
+
         $this->call([
             ProductSeeder::class,
             RolePermissionSeeder::class,

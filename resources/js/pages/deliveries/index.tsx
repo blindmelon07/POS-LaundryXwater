@@ -51,6 +51,7 @@ interface Props {
     customers: Customer[];
     products: Product[];
     summary: { today: number; pending: number };
+    can_manage: boolean;
 }
 
 function fmt(n: number) {
@@ -378,6 +379,7 @@ export default function DeliveriesIndex({
     customers,
     products,
     summary,
+    can_manage,
 }: Props) {
     const [showNew, setShowNew] = useState(false);
     const [statusOrder, setStatusOrder] = useState<DeliveryOrder | null>(null);
@@ -450,9 +452,11 @@ export default function DeliveriesIndex({
                                 ))}
                             </SelectContent>
                         </Select>
-                        <Button size="sm" className="h-8 gap-1.5" onClick={() => setShowNew(true)}>
-                            <Plus className="size-4" /> New Delivery
-                        </Button>
+                        {can_manage && (
+                            <Button size="sm" className="h-8 gap-1.5" onClick={() => setShowNew(true)}>
+                                <Plus className="size-4" /> New Delivery
+                            </Button>
+                        )}
                     </div>
                 </div>
 
@@ -525,17 +529,19 @@ export default function DeliveriesIndex({
                                                         >
                                                             <Truck className="size-3" /> Update
                                                         </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="size-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                                            onClick={() => {
-                                                                if (confirm(`Delete ${o.order_number}?`))
-                                                                    router.delete(`/deliveries/${o.id}`);
-                                                            }}
-                                                        >
-                                                            <Trash2 className="size-3.5" />
-                                                        </Button>
+                                                        {can_manage && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="size-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                                                onClick={() => {
+                                                                    if (confirm(`Delete ${o.order_number}?`))
+                                                                        router.delete(`/deliveries/${o.id}`);
+                                                                }}
+                                                            >
+                                                                <Trash2 className="size-3.5" />
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -565,7 +571,7 @@ export default function DeliveriesIndex({
                 )}
             </div>
 
-            <Dialog open={showNew} onOpenChange={setShowNew}>
+            <Dialog open={can_manage && showNew} onOpenChange={setShowNew}>
                 <DialogContent className="max-w-lg">
                     <DialogHeader>
                         <DialogTitle>New Delivery Order</DialogTitle>

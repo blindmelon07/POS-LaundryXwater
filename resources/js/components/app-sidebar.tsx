@@ -4,6 +4,7 @@ import {
     Boxes,
     ClipboardList,
     LayoutGrid,
+    NotebookPen,
     Package,
     PackageSearch,
     Receipt,
@@ -38,9 +39,12 @@ export function AppSidebar() {
         { title: 'Dashboard', href: '/dashboard', icon: LayoutGrid },
         ...(can('use pos') ? [{ title: 'POS Terminal', href: '/pos', icon: ShoppingCart }] : []),
         ...(can('view sales') ? [{ title: 'Sales History', href: '/sales', icon: Receipt }] : []),
-        { title: 'Customers', href: '/customers', icon: Users },
-        { title: 'Deliveries', href: '/deliveries', icon: Truck },
-        { title: 'Container Tracking', href: '/containers', icon: Package },
+        ...(can('view deliveries') ? [{ title: 'Deliveries', href: '/deliveries', icon: Truck }] : []),
+        ...(can('manage loading') ? [{ title: 'Loading Log', href: '/loading-log', icon: NotebookPen }] : []),
+        ...(can('use pos') ? [
+            { title: 'Customers', href: '/customers', icon: Users },
+            { title: 'Container Tracking', href: '/containers', icon: Package },
+        ] : []),
         ...(can('manage products') ? [{ title: 'Products', href: '/products', icon: PackageSearch }] : []),
         ...(can('manage expenses') ? [{ title: 'Expenses', href: '/expenses', icon: Wallet }] : []),
         ...(can('manage inventory') ? [{ title: 'Water Inventory', href: '/inventory', icon: Boxes }] : []),
@@ -54,11 +58,11 @@ export function AppSidebar() {
         ] : []),
     ];
 
-    const laundryNavItems: NavItem[] = [
+    const laundryNavItems: NavItem[] = can('use pos') ? [
         { title: 'Laundry Orders', href: '/laundry/orders', icon: WashingMachine },
         { title: 'Services & Pricing', href: '/laundry/services', icon: ShoppingBag },
         { title: 'Laundry Inventory', href: '/laundry/inventory', icon: Boxes },
-    ];
+    ] : [];
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -76,7 +80,9 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={waterNavItems} label="Water Refilling" />
-                <NavMain items={laundryNavItems} label="Laundry" />
+                {laundryNavItems.length > 0 && (
+                    <NavMain items={laundryNavItems} label="Laundry" />
+                )}
             </SidebarContent>
 
             <SidebarFooter>

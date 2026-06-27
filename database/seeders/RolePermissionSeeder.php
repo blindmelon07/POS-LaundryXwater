@@ -22,6 +22,9 @@ class RolePermissionSeeder extends Seeder
             'manage expenses',
             'manage inventory',
             'view reports',
+            'view deliveries',
+            'manage deliveries',
+            'manage loading',
             'manage users',
             'manage roles',
         ];
@@ -30,9 +33,11 @@ class RolePermissionSeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission]);
         }
 
+        // Admin — full access
         $admin = Role::firstOrCreate(['name' => 'admin']);
         $admin->syncPermissions($permissions);
 
+        // Cashier — POS, sales, expenses, deliveries (create/delete), reports
         $cashier = Role::firstOrCreate(['name' => 'cashier']);
         $cashier->syncPermissions([
             'view dashboard',
@@ -40,16 +45,36 @@ class RolePermissionSeeder extends Seeder
             'view sales',
             'manage expenses',
             'view reports',
+            'view deliveries',
+            'manage deliveries',
         ]);
 
+        // Rider — view and update delivery status
+        $rider = Role::firstOrCreate(['name' => 'rider']);
+        $rider->syncPermissions([
+            'view dashboard',
+            'view deliveries',
+        ]);
+
+        // Loader — views deliveries + logs product in/out
+        $loader = Role::firstOrCreate(['name' => 'loader']);
+        $loader->syncPermissions([
+            'view dashboard',
+            'view deliveries',
+            'manage loading',
+        ]);
+
+        // Assign default accounts
         $adminUser = User::where('email', 'admin@pos.com')->first();
-        if ($adminUser) {
-            $adminUser->syncRoles(['admin']);
-        }
+        if ($adminUser) $adminUser->syncRoles(['admin']);
 
         $cashierUser = User::where('email', 'cashier@pos.com')->first();
-        if ($cashierUser) {
-            $cashierUser->syncRoles(['cashier']);
-        }
+        if ($cashierUser) $cashierUser->syncRoles(['cashier']);
+
+        $riderUser = User::where('email', 'rider@pos.com')->first();
+        if ($riderUser) $riderUser->syncRoles(['rider']);
+
+        $loaderUser = User::where('email', 'loader@pos.com')->first();
+        if ($loaderUser) $loaderUser->syncRoles(['loader']);
     }
 }

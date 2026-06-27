@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ContainerController;
+use App\Http\Controllers\LoadingLogController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryOrderController;
@@ -71,11 +72,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('containers', [ContainerController::class, 'index'])->name('containers.index');
     Route::put('containers/{customer}', [ContainerController::class, 'updateContainers'])->name('containers.update');
 
-    // Deliveries
-    Route::get('deliveries', [DeliveryOrderController::class, 'index'])->name('deliveries.index');
-    Route::post('deliveries', [DeliveryOrderController::class, 'store'])->name('deliveries.store');
-    Route::patch('deliveries/{deliveryOrder}/status', [DeliveryOrderController::class, 'updateStatus'])->name('deliveries.status');
-    Route::delete('deliveries/{deliveryOrder}', [DeliveryOrderController::class, 'destroy'])->name('deliveries.destroy');
+    // Deliveries — rider can view and update status; cashier/admin can create and delete
+    Route::middleware('can:view deliveries')->group(function () {
+        Route::get('deliveries', [DeliveryOrderController::class, 'index'])->name('deliveries.index');
+        Route::patch('deliveries/{deliveryOrder}/status', [DeliveryOrderController::class, 'updateStatus'])->name('deliveries.status');
+    });
+    Route::middleware('can:manage deliveries')->group(function () {
+        Route::post('deliveries', [DeliveryOrderController::class, 'store'])->name('deliveries.store');
+        Route::delete('deliveries/{deliveryOrder}', [DeliveryOrderController::class, 'destroy'])->name('deliveries.destroy');
+    });
+
+    // Loading Log
+    Route::middleware('can:manage loading')->group(function () {
+        Route::get('loading-log', [LoadingLogController::class, 'index'])->name('loading-log.index');
+        Route::post('loading-log', [LoadingLogController::class, 'store'])->name('loading-log.store');
+        Route::delete('loading-log/{loadingLog}', [LoadingLogController::class, 'destroy'])->name('loading-log.destroy');
+    });
 
     // Exports
     Route::get('export/sales', [ExportController::class, 'salesCsv'])->name('export.sales');

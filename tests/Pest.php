@@ -22,26 +22,28 @@ expect()->extend('toBeOne', function () {
 // Helper: create a user and assign a role with all permissions
 function adminUser(): User
 {
-    $permissions = [
+    $adminPerms = [
         'view dashboard', 'use pos', 'view sales', 'delete sales',
         'manage products', 'manage expenses', 'manage inventory',
-        'view reports', 'manage users', 'manage roles',
+        'view reports', 'view deliveries', 'manage deliveries',
+        'manage users', 'manage roles',
     ];
+    $cashierPerms = [
+        'view dashboard', 'use pos', 'view sales',
+        'manage expenses', 'view reports',
+        'view deliveries', 'manage deliveries',
+    ];
+    $riderPerms  = ['view dashboard', 'view deliveries'];
+    $loaderPerms = ['view dashboard', 'view deliveries', 'manage loading'];
 
-    foreach ($permissions as $p) {
+    foreach (array_unique(array_merge($adminPerms, $cashierPerms, $riderPerms, $loaderPerms)) as $p) {
         Permission::firstOrCreate(['name' => $p]);
     }
 
-    $adminRole = Role::firstOrCreate(['name' => 'admin']);
-    $adminRole->syncPermissions($permissions);
-
-    // Ensure cashier role exists so UserController validation passes
-    $cashierPerms = ['view dashboard', 'use pos', 'view sales', 'manage expenses', 'view reports'];
-    foreach ($cashierPerms as $p) {
-        Permission::firstOrCreate(['name' => $p]);
-    }
-    $cashierRole = Role::firstOrCreate(['name' => 'cashier']);
-    $cashierRole->syncPermissions($cashierPerms);
+    Role::firstOrCreate(['name' => 'admin'])->syncPermissions($adminPerms);
+    Role::firstOrCreate(['name' => 'cashier'])->syncPermissions($cashierPerms);
+    Role::firstOrCreate(['name' => 'rider'])->syncPermissions($riderPerms);
+    Role::firstOrCreate(['name' => 'loader'])->syncPermissions($loaderPerms);
 
     $user = User::factory()->create();
     $user->assignRole('admin');
@@ -51,7 +53,11 @@ function adminUser(): User
 
 function cashierUser(): User
 {
-    $permissions = ['view dashboard', 'use pos', 'view sales', 'manage expenses', 'view reports'];
+    $permissions = [
+        'view dashboard', 'use pos', 'view sales',
+        'manage expenses', 'view reports',
+        'view deliveries', 'manage deliveries',
+    ];
 
     foreach ($permissions as $p) {
         Permission::firstOrCreate(['name' => $p]);
@@ -62,6 +68,40 @@ function cashierUser(): User
 
     $user = User::factory()->create();
     $user->assignRole('cashier');
+
+    return $user;
+}
+
+function riderUser(): User
+{
+    $permissions = ['view dashboard', 'view deliveries'];
+
+    foreach ($permissions as $p) {
+        Permission::firstOrCreate(['name' => $p]);
+    }
+
+    $role = Role::firstOrCreate(['name' => 'rider']);
+    $role->syncPermissions($permissions);
+
+    $user = User::factory()->create();
+    $user->assignRole('rider');
+
+    return $user;
+}
+
+function loaderUser(): User
+{
+    $permissions = ['view dashboard', 'view deliveries'];
+
+    foreach ($permissions as $p) {
+        Permission::firstOrCreate(['name' => $p]);
+    }
+
+    $role = Role::firstOrCreate(['name' => 'loader']);
+    $role->syncPermissions($permissions);
+
+    $user = User::factory()->create();
+    $user->assignRole('loader');
 
     return $user;
 }
