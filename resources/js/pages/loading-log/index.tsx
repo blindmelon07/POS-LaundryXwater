@@ -125,9 +125,14 @@ function LogForm({
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
+        const isPrepaid = data.payment_method === 'paid';
         router.post(
             '/loading-log',
-            { ...data, payment_method: data.payment_method === 'paid' ? 'cash' : data.payment_method },
+            {
+                ...data,
+                payment_method: isPrepaid ? 'cash' : data.payment_method,
+                is_prepaid: isPrepaid,
+            },
             { onSuccess: onClose },
         );
     };

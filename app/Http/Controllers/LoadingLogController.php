@@ -94,7 +94,8 @@ class LoadingLogController extends Controller
             'delivery_phone'      => 'nullable|string|max:50',
             'delivery_product_id' => 'nullable|exists:products,id',
             'delivery_quantity'   => 'nullable|integer|min:1',
-            'payment_method'    => 'nullable|in:cash,gcash,card,unpaid',
+            'payment_method'      => 'nullable|in:cash,gcash,card,unpaid',
+            'is_prepaid'          => 'nullable|boolean',
         ]);
 
         $deliveryOrderNumber = null;
@@ -126,9 +127,9 @@ class LoadingLogController extends Controller
                     'phone'          => $validated['delivery_phone'] ?? null,
                     'scheduled_date' => $validated['log_date'],
                     'status'         => 'pending',
-                    'payment_method' => $paymentMethod === 'paid' ? 'cash' : $paymentMethod,
+                    'payment_method' => $paymentMethod,
                     'total_amount'   => $total,
-                    'amount_paid'    => $paymentMethod === 'paid' ? $total : 0,
+                    'amount_paid'    => ($validated['is_prepaid'] ?? false) ? $total : 0,
                     'notes'          => $validated['notes'] ?? null,
                     'user_id'        => auth()->id(),
                 ]);
