@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DeliveryOrder;
 use App\Models\InventoryAdjustment;
 use App\Models\InventoryItem;
 use App\Models\LoadingLog;
+use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -33,6 +35,7 @@ class LoadingLogController extends Controller
                 'logged_by'          => $log->user?->name,
                 'inventory_item_id'  => $log->inventory_item_id,
                 'inventory_linked'   => $log->inventory_item_id !== null,
+                'delivery_order_number' => $log->delivery_order_number,
                 'created_at'         => $log->created_at->format('h:i A'),
             ]);
 
@@ -41,7 +44,6 @@ class LoadingLogController extends Controller
             'total_in'  => $logs->where('type', 'load_in')->sum('quantity'),
         ];
 
-        // Water inventory items for the picker
         $inventoryItems = InventoryItem::where('business', 'water')
             ->orderBy('category')
             ->orderBy('name')
@@ -54,11 +56,17 @@ class LoadingLogController extends Controller
                 'unit'     => $item->unit,
             ]);
 
+        $products = Product::active()
+            ->whereNotIn('type', ['delivery', 'other'])
+            ->orderBy('name')
+            ->get(['id', 'name', 'type', 'price', 'unit']);
+
         return Inertia::render('loading-log/index', [
             'logs'            => $logs,
             'summary'         => $summary,
             'date'            => $date,
             'inventory_items' => $inventoryItems,
+            'products'        => $products,
             'type_labels'     => LoadingLog::$typeLabels,
         ]);
     }
@@ -74,9 +82,66 @@ class LoadingLogController extends Controller
             'unit'              => 'required|string|max:50',
             'rider_name'        => 'nullable|string|max:255',
             'notes'             => 'nullable|string',
+            'customer_name'     => 'nullable|string|max:255',
+            'delivery_address'  => 'nullable|string|max:500',
+            'delivery_product_id' => 'nullable|exists:products,id',
+            'payment_method'    => 'nullable|in:cash,gcash,card,unpaid',
         ]);
 
-        $log = LoadingLog::create(array_merge($validated, ['user_id' => auth()->id()]));
+        $deliveryOrderNumber = null;
+
+        // Auto-create delivery order when load_out has customer + address
+        if (
+            $validated['type'] === 'load_out' &&
+            !empty($validated['customer_name']) &&
+            !empty($validated['delivery_address'])
+        ) {
+            $product = isset($validated['delivery_product_id'])
+                ? Product::find($validated['delivery_product_id'])
+                : null;
+
+            $qty   = (int) $validated['quantity'];
+            $total = $product ? $product->price * $qty : 0;
+
+            $order = DeliveryOrder::create([
+                'order_number'   => DeliveryOrder::generateOrderNumber(),
+                'customer_name'  => $validated['customer_name'],
+                'address'        => $validated['delivery_address'],
+                'scheduled_date' => $validated['log_date'],
+                'status'         => 'pending',
+                'payment_method' => $validated['payment_method'] ?? 'unpaid',
+                'total_amount'   => $total,
+                'amount_paid'    => 0,
+                'notes'          => $validated['notes'] ?? null,
+                'user_id'        => auth()->id(),
+            ]);
+
+            if ($product) {
+                $order->items()->create([
+                    'product_id'   => $product->id,
+                    'product_name' => $product->name,
+                    'product_type' => $product->type,
+                    'unit_price'   => $product->price,
+                    'quantity'     => $qty,
+                    'subtotal'     => $total,
+                ]);
+            }
+
+            $deliveryOrderNumber = $order->order_number;
+        }
+
+        $logData = array_merge(
+            array_intersect_key($validated, array_flip([
+                'log_date', 'type', 'inventory_item_id', 'product_name',
+                'quantity', 'unit', 'rider_name', 'notes',
+            ])),
+            [
+                'user_id'              => auth()->id(),
+                'delivery_order_number' => $deliveryOrderNumber,
+            ]
+        );
+
+        $log = LoadingLog::create($logData);
 
         // Auto-adjust linked inventory item
         if ($validated['inventory_item_id'] ?? null) {
@@ -107,7 +172,11 @@ class LoadingLogController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Log entry saved.');
+        $message = $deliveryOrderNumber
+            ? "Log saved. Delivery order {$deliveryOrderNumber} created for the rider."
+            : 'Log entry saved.';
+
+        return back()->with('success', $message);
     }
 
     public function destroy(LoadingLog $loadingLog): RedirectResponse

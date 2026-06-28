@@ -10,6 +10,7 @@ class LoadingLog extends Model
     protected $fillable = [
         'log_date', 'type', 'product_name', 'quantity', 'unit',
         'rider_name', 'notes', 'user_id', 'inventory_item_id',
+        'delivery_order_number',
     ];
 
     protected $casts = [

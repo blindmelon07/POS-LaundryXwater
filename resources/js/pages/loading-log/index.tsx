@@ -20,6 +20,7 @@ interface LogEntry {
     notes: string | null;
     logged_by: string | null;
     inventory_linked: boolean;
+    delivery_order_number: string | null;
     created_at: string;
 }
 
@@ -31,32 +32,47 @@ interface InventoryItem {
     unit: string;
 }
 
+interface Product {
+    id: number;
+    name: string;
+    type: string;
+    price: number;
+    unit: string;
+}
+
 interface Props {
     logs: LogEntry[];
     summary: { total_out: number; total_in: number };
     date: string;
     inventory_items: InventoryItem[];
+    products: Product[];
     type_labels: Record<string, string>;
 }
 
 function LogForm({
     inventoryItems,
+    products,
     date,
     onClose,
 }: {
     inventoryItems: InventoryItem[];
+    products: Product[];
     date: string;
     onClose: () => void;
 }) {
     const { data, setData, post, processing, errors } = useForm({
-        log_date:           date,
-        type:               'load_out',
-        inventory_item_id:  '',
-        product_name:       '',
-        quantity:           '',
-        unit:               'jugs',
-        rider_name:         '',
-        notes:              '',
+        log_date:              date,
+        type:                  'load_out',
+        inventory_item_id:     '',
+        product_name:          '',
+        quantity:              '',
+        unit:                  'jugs',
+        rider_name:            '',
+        notes:                 '',
+        customer_name:         '',
+        delivery_address:      '',
+        delivery_product_id:   '',
+        payment_method:        'unpaid',
     });
 
     const selectedItem = inventoryItems.find((i) => i.id.toString() === data.inventory_item_id) ?? null;
@@ -204,6 +220,72 @@ function LogForm({
                     placeholder="Any additional details" />
             </div>
 
+            {/* Delivery Order Section — only for Load Out */}
+            {isOut && (
+                <div className="flex flex-col gap-3 rounded-xl border-2 border-blue-200 bg-blue-50 p-4">
+                    <p className="text-sm font-semibold text-blue-800">
+                        Create Delivery Order for Rider{' '}
+                        <span className="font-normal text-blue-600">(optional — fill to notify rider)</span>
+                    </p>
+                    <div>
+                        <Label>Customer Name</Label>
+                        <Input
+                            className="mt-1"
+                            value={data.customer_name}
+                            onChange={(e) => setData('customer_name', e.target.value)}
+                            placeholder="Who is this delivery for?"
+                        />
+                    </div>
+                    <div>
+                        <Label>Delivery Address</Label>
+                        <Input
+                            className="mt-1"
+                            value={data.delivery_address}
+                            onChange={(e) => setData('delivery_address', e.target.value)}
+                            placeholder="Street, Barangay, City"
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <Label>Product Ordered</Label>
+                            <Select
+                                value={data.delivery_product_id || 'none'}
+                                onValueChange={(v) => setData('delivery_product_id', v === 'none' ? '' : v)}
+                            >
+                                <SelectTrigger className="mt-1"><SelectValue placeholder="Select product…" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">
+                                        <span className="italic text-muted-foreground">No product</span>
+                                    </SelectItem>
+                                    {products.map((p) => (
+                                        <SelectItem key={p.id} value={p.id.toString()}>
+                                            {p.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label>Payment</Label>
+                            <Select value={data.payment_method} onValueChange={(v) => setData('payment_method', v)}>
+                                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="unpaid">Unpaid</SelectItem>
+                                    <SelectItem value="cash">Cash</SelectItem>
+                                    <SelectItem value="gcash">GCash</SelectItem>
+                                    <SelectItem value="card">Card</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    {data.customer_name && data.delivery_address && (
+                        <p className="text-xs font-medium text-blue-700">
+                            ✓ A delivery order will be created and the rider will see it in Deliveries.
+                        </p>
+                    )}
+                </div>
+            )}
+
             <Button
                 type="submit"
                 disabled={processing || (!data.inventory_item_id && !data.product_name)}
@@ -217,7 +299,7 @@ function LogForm({
     );
 }
 
-export default function LoadingLogIndex({ logs, summary, date, inventory_items, type_labels }: Props) {
+export default function LoadingLogIndex({ logs, summary, date, inventory_items, products, type_labels }: Props) {
     const [showAdd, setShowAdd] = useState(false);
 
     return (
@@ -323,6 +405,11 @@ export default function LoadingLogIndex({ logs, summary, date, inventory_items, 
                                                             inventory updated
                                                         </p>
                                                     )}
+                                                    {log.delivery_order_number && (
+                                                        <p className="text-[10px] text-blue-600 font-medium">
+                                                            {log.delivery_order_number}
+                                                        </p>
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3 text-center font-bold tabular-nums">
                                                     {log.quantity} {log.unit}
@@ -357,6 +444,7 @@ export default function LoadingLogIndex({ logs, summary, date, inventory_items, 
                     </DialogHeader>
                     <LogForm
                         inventoryItems={inventory_items}
+                        products={products}
                         date={date}
                         onClose={() => setShowAdd(false)}
                     />
