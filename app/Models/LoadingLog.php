@@ -26,4 +26,9 @@ class LoadingLog extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function inventoryItem(): BelongsTo
+    {
+        return $this->belongsTo(InventoryItem::class);
+    }
 }
