@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\DeliveryOrder;
 use App\Models\InventoryAdjustment;
 use App\Models\InventoryItem;
@@ -61,12 +62,17 @@ class LoadingLogController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'type', 'price', 'unit']);
 
+        $customers = Customer::where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone', 'address']);
+
         return Inertia::render('loading-log/index', [
             'logs'            => $logs,
             'summary'         => $summary,
             'date'            => $date,
             'inventory_items' => $inventoryItems,
             'products'        => $products,
+            'customers'       => $customers,
             'type_labels'     => LoadingLog::$typeLabels,
         ]);
     }
@@ -82,9 +88,12 @@ class LoadingLogController extends Controller
             'unit'              => 'required|string|max:50',
             'rider_name'        => 'nullable|string|max:255',
             'notes'             => 'nullable|string',
-            'customer_name'     => 'nullable|string|max:255',
-            'delivery_address'  => 'nullable|string|max:500',
+            'customer_id'         => 'nullable|exists:customers,id',
+            'customer_name'       => 'nullable|string|max:255',
+            'delivery_address'    => 'nullable|string|max:500',
+            'delivery_phone'      => 'nullable|string|max:50',
             'delivery_product_id' => 'nullable|exists:products,id',
+            'delivery_quantity'   => 'nullable|integer|min:1',
             'payment_method'    => 'nullable|in:cash,gcash,card,unpaid',
         ]);
 
@@ -97,14 +106,13 @@ class LoadingLogController extends Controller
             !empty($validated['delivery_address'])
         ) {
             try {
-                $product = isset($validated['delivery_product_id'])
+                $product = !empty($validated['delivery_product_id'])
                     ? Product::find($validated['delivery_product_id'])
                     : null;
 
-                $qty   = (int) $validated['quantity'];
-                $total = $product ? $product->price * $qty : 0;
+                $deliveryQty = (int) ($validated['delivery_quantity'] ?? 1);
+                $total       = $product ? $product->price * $deliveryQty : 0;
 
-                // Normalize payment method to a safe enum value
                 $paymentMethod = $validated['payment_method'] ?? 'unpaid';
                 if (!in_array($paymentMethod, ['cash', 'gcash', 'card', 'unpaid', 'paid'])) {
                     $paymentMethod = 'unpaid';
@@ -112,8 +120,10 @@ class LoadingLogController extends Controller
 
                 $order = DeliveryOrder::create([
                     'order_number'   => DeliveryOrder::generateOrderNumber(),
+                    'customer_id'    => $validated['customer_id'] ?? null,
                     'customer_name'  => $validated['customer_name'],
                     'address'        => $validated['delivery_address'],
+                    'phone'          => $validated['delivery_phone'] ?? null,
                     'scheduled_date' => $validated['log_date'],
                     'status'         => 'pending',
                     'payment_method' => $paymentMethod === 'paid' ? 'cash' : $paymentMethod,
@@ -129,7 +139,7 @@ class LoadingLogController extends Controller
                         'product_name' => $product->name,
                         'product_type' => $product->type,
                         'unit_price'   => $product->price,
-                        'quantity'     => $qty,
+                        'quantity'     => $deliveryQty,
                         'subtotal'     => $total,
                     ]);
                 }

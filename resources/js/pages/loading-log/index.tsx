@@ -40,23 +40,33 @@ interface Product {
     unit: string;
 }
 
+interface Customer {
+    id: number;
+    name: string;
+    phone: string | null;
+    address: string | null;
+}
+
 interface Props {
     logs: LogEntry[];
     summary: { total_out: number; total_in: number };
     date: string;
     inventory_items: InventoryItem[];
     products: Product[];
+    customers: Customer[];
     type_labels: Record<string, string>;
 }
 
 function LogForm({
     inventoryItems,
     products,
+    customers,
     date,
     onClose,
 }: {
     inventoryItems: InventoryItem[];
     products: Product[];
+    customers: Customer[];
     date: string;
     onClose: () => void;
 }) {
@@ -69,11 +79,31 @@ function LogForm({
         unit:                  'jugs',
         rider_name:            '',
         notes:                 '',
+        customer_id:           '',
         customer_name:         '',
         delivery_address:      '',
+        delivery_phone:        '',
         delivery_product_id:   '',
+        delivery_quantity:     '1',
         payment_method:        'unpaid',
     });
+
+    const handleCustomerSelect = (id: string) => {
+        if (id === 'manual') {
+            setData((d) => ({ ...d, customer_id: '', customer_name: '', delivery_address: '', delivery_phone: '' }));
+            return;
+        }
+        const c = customers.find((x) => x.id.toString() === id);
+        if (c) {
+            setData((d) => ({
+                ...d,
+                customer_id:      id,
+                customer_name:    c.name,
+                delivery_address: c.address ?? '',
+                delivery_phone:   c.phone ?? '',
+            }));
+        }
+    };
 
     const selectedItem = inventoryItems.find((i) => i.id.toString() === data.inventory_item_id) ?? null;
 
@@ -227,15 +257,54 @@ function LogForm({
                         Create Delivery Order for Rider{' '}
                         <span className="font-normal text-blue-600">(optional — fill to notify rider)</span>
                     </p>
+
+                    {/* Customer picker */}
                     <div>
-                        <Label>Customer Name</Label>
-                        <Input
-                            className="mt-1"
-                            value={data.customer_name}
-                            onChange={(e) => setData('customer_name', e.target.value)}
-                            placeholder="Who is this delivery for?"
-                        />
+                        <Label>Customer</Label>
+                        <Select
+                            value={data.customer_id || 'manual'}
+                            onValueChange={handleCustomerSelect}
+                        >
+                            <SelectTrigger className="mt-1"><SelectValue placeholder="Select customer…" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="manual">
+                                    <span className="italic text-muted-foreground">New / type manually</span>
+                                </SelectItem>
+                                {customers.map((c) => (
+                                    <SelectItem key={c.id} value={c.id.toString()}>
+                                        <span className="flex flex-col">
+                                            <span>{c.name}</span>
+                                            {c.phone && <span className="text-xs text-muted-foreground">{c.phone}</span>}
+                                        </span>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
+
+                    {/* Name + Phone */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <Label>Customer Name</Label>
+                            <Input
+                                className="mt-1"
+                                value={data.customer_name}
+                                onChange={(e) => setData('customer_name', e.target.value)}
+                                placeholder="Full name"
+                            />
+                        </div>
+                        <div>
+                            <Label>Phone <span className="text-muted-foreground">(optional)</span></Label>
+                            <Input
+                                className="mt-1"
+                                value={data.delivery_phone}
+                                onChange={(e) => setData('delivery_phone', e.target.value)}
+                                placeholder="09xx-xxx-xxxx"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Address */}
                     <div>
                         <Label>Delivery Address</Label>
                         <Input
@@ -245,14 +314,16 @@ function LogForm({
                             placeholder="Street, Barangay, City"
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
+
+                    {/* Product + Qty + Payment */}
+                    <div className="grid grid-cols-3 gap-3">
+                        <div className="col-span-1">
                             <Label>Product Ordered</Label>
                             <Select
                                 value={data.delivery_product_id || 'none'}
                                 onValueChange={(v) => setData('delivery_product_id', v === 'none' ? '' : v)}
                             >
-                                <SelectTrigger className="mt-1"><SelectValue placeholder="Select product…" /></SelectTrigger>
+                                <SelectTrigger className="mt-1"><SelectValue placeholder="Select…" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="none">
                                         <span className="italic text-muted-foreground">No product</span>
@@ -266,19 +337,30 @@ function LogForm({
                             </Select>
                         </div>
                         <div>
+                            <Label>Qty</Label>
+                            <Input
+                                className="mt-1"
+                                type="number"
+                                min={1}
+                                value={data.delivery_quantity}
+                                onChange={(e) => setData('delivery_quantity', e.target.value)}
+                            />
+                        </div>
+                        <div>
                             <Label>Payment</Label>
                             <Select value={data.payment_method} onValueChange={(v) => setData('payment_method', v)}>
                                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="unpaid">Unpaid</SelectItem>
-                                    <SelectItem value="paid">Paid</SelectItem>
                                     <SelectItem value="cash">Cash</SelectItem>
                                     <SelectItem value="gcash">GCash</SelectItem>
                                     <SelectItem value="card">Card</SelectItem>
+                                    <SelectItem value="paid">Paid</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
+
                     {data.customer_name && data.delivery_address && (
                         <p className="text-xs font-medium text-blue-700">
                             ✓ A delivery order will be created and the rider will see it in Deliveries.
@@ -300,7 +382,7 @@ function LogForm({
     );
 }
 
-export default function LoadingLogIndex({ logs, summary, date, inventory_items, products, type_labels }: Props) {
+export default function LoadingLogIndex({ logs, summary, date, inventory_items, products, customers, type_labels }: Props) {
     const [showAdd, setShowAdd] = useState(false);
 
     return (
@@ -446,6 +528,7 @@ export default function LoadingLogIndex({ logs, summary, date, inventory_items, 
                     <LogForm
                         inventoryItems={inventory_items}
                         products={products}
+                        customers={customers}
                         date={date}
                         onClose={() => setShowAdd(false)}
                     />
