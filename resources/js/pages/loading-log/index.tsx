@@ -125,7 +125,11 @@ function LogForm({
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/loading-log', { onSuccess: onClose });
+        router.post(
+            '/loading-log',
+            { ...data, payment_method: data.payment_method === 'paid' ? 'cash' : data.payment_method },
+            { onSuccess: onClose },
+        );
     };
 
     const isOut = data.type === 'load_out';
