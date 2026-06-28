@@ -96,38 +96,48 @@ class LoadingLogController extends Controller
             !empty($validated['customer_name']) &&
             !empty($validated['delivery_address'])
         ) {
-            $product = isset($validated['delivery_product_id'])
-                ? Product::find($validated['delivery_product_id'])
-                : null;
+            try {
+                $product = isset($validated['delivery_product_id'])
+                    ? Product::find($validated['delivery_product_id'])
+                    : null;
 
-            $qty   = (int) $validated['quantity'];
-            $total = $product ? $product->price * $qty : 0;
+                $qty   = (int) $validated['quantity'];
+                $total = $product ? $product->price * $qty : 0;
 
-            $order = DeliveryOrder::create([
-                'order_number'   => DeliveryOrder::generateOrderNumber(),
-                'customer_name'  => $validated['customer_name'],
-                'address'        => $validated['delivery_address'],
-                'scheduled_date' => $validated['log_date'],
-                'status'         => 'pending',
-                'payment_method' => $validated['payment_method'] ?? 'unpaid',
-                'total_amount'   => $total,
-                'amount_paid'    => 0,
-                'notes'          => $validated['notes'] ?? null,
-                'user_id'        => auth()->id(),
-            ]);
+                // Normalize payment method to a safe enum value
+                $paymentMethod = $validated['payment_method'] ?? 'unpaid';
+                if (!in_array($paymentMethod, ['cash', 'gcash', 'card', 'unpaid', 'paid'])) {
+                    $paymentMethod = 'unpaid';
+                }
 
-            if ($product) {
-                $order->items()->create([
-                    'product_id'   => $product->id,
-                    'product_name' => $product->name,
-                    'product_type' => $product->type,
-                    'unit_price'   => $product->price,
-                    'quantity'     => $qty,
-                    'subtotal'     => $total,
+                $order = DeliveryOrder::create([
+                    'order_number'   => DeliveryOrder::generateOrderNumber(),
+                    'customer_name'  => $validated['customer_name'],
+                    'address'        => $validated['delivery_address'],
+                    'scheduled_date' => $validated['log_date'],
+                    'status'         => 'pending',
+                    'payment_method' => $paymentMethod === 'paid' ? 'cash' : $paymentMethod,
+                    'total_amount'   => $total,
+                    'amount_paid'    => $paymentMethod === 'paid' ? $total : 0,
+                    'notes'          => $validated['notes'] ?? null,
+                    'user_id'        => auth()->id(),
                 ]);
-            }
 
-            $deliveryOrderNumber = $order->order_number;
+                if ($product) {
+                    $order->items()->create([
+                        'product_id'   => $product->id,
+                        'product_name' => $product->name,
+                        'product_type' => $product->type,
+                        'unit_price'   => $product->price,
+                        'quantity'     => $qty,
+                        'subtotal'     => $total,
+                    ]);
+                }
+
+                $deliveryOrderNumber = $order->order_number;
+            } catch (\Exception $e) {
+                \Log::error('Failed to create delivery order from loading log: ' . $e->getMessage());
+            }
         }
 
         $logData = array_merge(
