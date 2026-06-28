@@ -320,7 +320,12 @@ function UpdateStatusForm({
     statusLabels: Record<string, string>;
     onClose: () => void;
 }) {
-    const { data, setData, patch, processing } = useForm({ status: order.status, amount_paid: '' });
+    const { data, setData, patch, processing } = useForm({
+        status: order.status,
+        amount_paid: '',
+        payment_method: order.payment_method,
+    });
+
     return (
         <form
             onSubmit={(e) => {
@@ -332,35 +337,56 @@ function UpdateStatusForm({
             <p className="text-sm text-muted-foreground">
                 Update status for <strong>{order.order_number}</strong>
             </p>
+            <p className="text-sm font-medium">
+                Customer: <span className="text-foreground">{order.customer_name}</span>
+                {' · '}Total: <span className="font-bold text-foreground">₱{order.total_amount.toFixed(2)}</span>
+            </p>
             <div>
                 <Label>Status</Label>
                 <Select value={data.status} onValueChange={(v) => setData('status', v)}>
-                    <SelectTrigger className="mt-1">
-                        <SelectValue />
-                    </SelectTrigger>
+                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                     <SelectContent>
                         {Object.entries(statusLabels).map(([v, l]) => (
-                            <SelectItem key={v} value={v}>
-                                {l}
-                            </SelectItem>
+                            <SelectItem key={v} value={v}>{l}</SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
             </div>
+
             {data.status === 'delivered' && (
-                <div>
-                    <Label>Amount Paid (₱)</Label>
-                    <Input
-                        className="mt-1"
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        value={data.amount_paid}
-                        onChange={(e) => setData('amount_paid', e.target.value)}
-                        placeholder={order.total_amount.toString()}
-                    />
-                </div>
+                <>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <Label>Amount Paid (₱)</Label>
+                            <Input
+                                className="mt-1"
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                value={data.amount_paid}
+                                onChange={(e) => setData('amount_paid', e.target.value)}
+                                placeholder={order.total_amount.toString()}
+                            />
+                        </div>
+                        <div>
+                            <Label>Payment Method</Label>
+                            <Select value={data.payment_method} onValueChange={(v) => setData('payment_method', v)}>
+                                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="cash">Cash</SelectItem>
+                                    <SelectItem value="gcash">GCash</SelectItem>
+                                    <SelectItem value="card">Card</SelectItem>
+                                    <SelectItem value="unpaid">Unpaid</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-700">
+                        ✓ A sale record will be created automatically in POS transactions.
+                    </div>
+                </>
             )}
+
             <div className="flex gap-2 pt-1">
                 <Button type="submit" disabled={processing} className="flex-1">
                     {processing ? 'Updating…' : 'Update Status'}

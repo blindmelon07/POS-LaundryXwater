@@ -114,14 +114,18 @@ class DeliveryOrderController extends Controller
     public function updateStatus(Request $request, DeliveryOrder $deliveryOrder): RedirectResponse
     {
         $validated = $request->validate([
-            'status'      => 'required|in:pending,out_for_delivery,delivered,cancelled',
-            'amount_paid' => 'nullable|numeric|min:0',
+            'status'         => 'required|in:pending,out_for_delivery,delivered,cancelled',
+            'amount_paid'    => 'nullable|numeric|min:0',
+            'payment_method' => 'nullable|in:cash,gcash,card,unpaid',
         ]);
 
         $data = ['status' => $validated['status']];
 
         if ($validated['status'] === 'delivered') {
             $data['delivered_at'] = now();
+            if (!empty($validated['payment_method'])) {
+                $data['payment_method'] = $validated['payment_method'];
+            }
             $amountPaid = (float) ($validated['amount_paid'] ?? $deliveryOrder->total_amount);
             $data['amount_paid'] = $amountPaid;
 
