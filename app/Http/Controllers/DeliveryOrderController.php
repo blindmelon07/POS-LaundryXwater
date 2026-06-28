@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\DeliveryOrder;
 use App\Models\Product;
+use App\Models\Sale;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -113,7 +114,7 @@ class DeliveryOrderController extends Controller
     public function updateStatus(Request $request, DeliveryOrder $deliveryOrder): RedirectResponse
     {
         $validated = $request->validate([
-            'status' => 'required|in:pending,out_for_delivery,delivered,cancelled',
+            'status'      => 'required|in:pending,out_for_delivery,delivered,cancelled',
             'amount_paid' => 'nullable|numeric|min:0',
         ]);
 
@@ -121,8 +122,41 @@ class DeliveryOrderController extends Controller
 
         if ($validated['status'] === 'delivered') {
             $data['delivered_at'] = now();
-            if (isset($validated['amount_paid'])) {
-                $data['amount_paid'] = $validated['amount_paid'];
+            $amountPaid = (float) ($validated['amount_paid'] ?? $deliveryOrder->total_amount);
+            $data['amount_paid'] = $amountPaid;
+
+            // Auto-create a POS sale if not already linked and payment was made
+            if (!$deliveryOrder->sale_id && $amountPaid > 0) {
+                $deliveryOrder->load('items');
+
+                $sale = Sale::create([
+                    'sale_number'    => Sale::generateSaleNumber(),
+                    'customer_id'    => $deliveryOrder->customer_id,
+                    'customer_name'  => $deliveryOrder->customer_name,
+                    'sale_date'      => today(),
+                    'subtotal'       => $deliveryOrder->total_amount,
+                    'discount'       => 0,
+                    'total_amount'   => $deliveryOrder->total_amount,
+                    'payment_method' => $deliveryOrder->payment_method === 'unpaid' ? 'cash' : $deliveryOrder->payment_method,
+                    'amount_paid'    => $amountPaid,
+                    'change_amount'  => max(0, $amountPaid - $deliveryOrder->total_amount),
+                    'notes'          => "Delivery: {$deliveryOrder->order_number} — {$deliveryOrder->address}",
+                    'user_id'        => auth()->id(),
+                ]);
+
+                foreach ($deliveryOrder->items as $item) {
+                    $sale->items()->create([
+                        'product_id'          => $item->product_id,
+                        'product_name'        => $item->product_name,
+                        'product_type'        => $item->product_type,
+                        'unit_price'          => $item->unit_price,
+                        'quantity'            => $item->quantity,
+                        'containers_returned' => 0,
+                        'subtotal'            => $item->subtotal,
+                    ]);
+                }
+
+                $data['sale_id'] = $sale->id;
             }
         }
 

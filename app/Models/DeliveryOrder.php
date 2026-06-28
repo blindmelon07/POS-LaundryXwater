@@ -11,7 +11,7 @@ class DeliveryOrder extends Model
     protected $fillable = [
         'order_number', 'customer_id', 'customer_name', 'address', 'phone',
         'scheduled_date', 'scheduled_time', 'status', 'total_amount',
-        'amount_paid', 'payment_method', 'notes', 'delivered_at', 'user_id',
+        'amount_paid', 'payment_method', 'notes', 'delivered_at', 'user_id', 'sale_id',
     ];
 
     protected $casts = [
