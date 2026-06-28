@@ -83,6 +83,7 @@ function ItemForm({ item, onClose }: { item?: InventoryItem; onClose: () => void
                         onChange={(e) => setData('category', e.target.value)}
                         placeholder="e.g. Containers"
                     />
+                    {errors.category && <p className="mt-1 text-xs text-destructive">{errors.category}</p>}
                 </div>
                 <div>
                     <Label>
@@ -163,7 +164,7 @@ function ItemForm({ item, onClose }: { item?: InventoryItem; onClose: () => void
                 </div>
             </div>
             <div className="flex gap-2 pt-1">
-                <Button type="submit" disabled={processing} className="flex-1">
+                <Button type="submit" disabled={processing || !data.name.trim() || !data.category.trim()} className="flex-1">
                     {processing ? 'Saving…' : item ? 'Update Item' : 'Add Item'}
                 </Button>
                 <Button type="button" variant="outline" onClick={onClose}>
