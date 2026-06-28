@@ -271,6 +271,7 @@ function LogForm({
                                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="unpaid">Unpaid</SelectItem>
+                                    <SelectItem value="paid">Paid</SelectItem>
                                     <SelectItem value="cash">Cash</SelectItem>
                                     <SelectItem value="gcash">GCash</SelectItem>
                                     <SelectItem value="card">Card</SelectItem>

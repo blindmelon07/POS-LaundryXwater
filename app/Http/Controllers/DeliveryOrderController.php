@@ -63,7 +63,7 @@ class DeliveryOrderController extends Controller
             'phone' => 'nullable|string|max:50',
             'scheduled_date' => 'required|date',
             'scheduled_time' => 'nullable|string',
-            'payment_method' => 'required|in:cash,gcash,card,unpaid',
+            'payment_method' => 'required|in:cash,gcash,card,unpaid,paid',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',

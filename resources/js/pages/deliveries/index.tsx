@@ -185,6 +185,7 @@ function NewDeliveryForm({
                             <SelectItem value="gcash">GCash</SelectItem>
                             <SelectItem value="card">Card</SelectItem>
                             <SelectItem value="unpaid">Unpaid</SelectItem>
+                            <SelectItem value="paid">Paid</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
