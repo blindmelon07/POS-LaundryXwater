@@ -35,7 +35,9 @@ class DeliveryOrderController extends Controller
             'status' => $o->status,
             'status_label' => DeliveryOrder::statusLabels()[$o->status],
             'total_amount' => (float) $o->total_amount,
+            'amount_paid' => (float) $o->amount_paid,
             'payment_method' => $o->payment_method,
+            'is_prepaid' => (float) $o->amount_paid >= (float) $o->total_amount && $o->total_amount > 0,
         ]);
 
         $todayCount = DeliveryOrder::whereDate('scheduled_date', today())->count();

@@ -19,7 +19,9 @@ interface DeliveryOrder {
     status: string;
     status_label: string;
     total_amount: number;
+    amount_paid: number;
     payment_method: string;
+    is_prepaid: boolean;
 }
 
 interface Customer {
@@ -322,7 +324,7 @@ function UpdateStatusForm({
 }) {
     const { data, setData, patch, processing } = useForm({
         status: order.status,
-        amount_paid: '',
+        amount_paid: order.is_prepaid ? order.total_amount.toString() : '',
         payment_method: order.payment_method,
     });
 
@@ -341,6 +343,13 @@ function UpdateStatusForm({
                 Customer: <span className="text-foreground">{order.customer_name}</span>
                 {' · '}Total: <span className="font-bold text-foreground">₱{order.total_amount.toFixed(2)}</span>
             </p>
+
+            {order.is_prepaid && (
+                <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
+                    ✓ Already paid by loader — payment is locked
+                </div>
+            )}
+
             <div>
                 <Label>Status</Label>
                 <Select value={data.status} onValueChange={(v) => setData('status', v)}>
@@ -366,11 +375,16 @@ function UpdateStatusForm({
                                 value={data.amount_paid}
                                 onChange={(e) => setData('amount_paid', e.target.value)}
                                 placeholder={order.total_amount.toString()}
+                                disabled={order.is_prepaid}
                             />
                         </div>
                         <div>
                             <Label>Payment Method</Label>
-                            <Select value={data.payment_method} onValueChange={(v) => setData('payment_method', v)}>
+                            <Select
+                                value={data.payment_method}
+                                onValueChange={(v) => setData('payment_method', v)}
+                                disabled={order.is_prepaid}
+                            >
                                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="cash">Cash</SelectItem>
